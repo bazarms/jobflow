@@ -2,6 +2,7 @@ package gojobs
 
 import (
 	//    "fmt"
+
 	log "github.com/uthng/golog"
 )
 
@@ -52,8 +53,8 @@ var cmdRegistry *CmdRegistry
 
 ///////// DECLARATION OF ALL FUNCTIONS /////////////////
 
-// NewCmdRegistry initialize a unique instance of command registry
-func NewCmdRegistry() {
+// init initialize a unique instance of command registry
+func init() {
 	log.Debugln("Instanciate new command registry")
 	if cmdRegistry == nil {
 		cmdRegistry = &CmdRegistry{}
@@ -82,7 +83,7 @@ func GetCmdRegistry() *CmdRegistry {
 func CmdRegister(cmd Cmd) error {
 	// Name in commande registry = <module name>.<cmd name>
 	var name = cmd.Module.Name + "." + cmd.Name
-
+	log.Infoln(name, cmdRegistry)
 	// Verify if command already exists in the registry
 	_, ok := cmdRegistry.CmdList[name]
 	if ok == false {

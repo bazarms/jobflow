@@ -8,7 +8,11 @@ import (
 	log "github.com/uthng/golog"
 )
 
-var module = gojobs.Module{"ModTest", "0.1", "ModTest"}
+var module = gojobs.Module{
+	Name:        "ModTest",
+	Version:     "0.1",
+	Description: "ModTest",
+}
 
 var fn = func(map[string]interface{}) *gojobs.CmdResult {
 	log.Debugln("CmdFunc test")
@@ -16,14 +20,24 @@ var fn = func(map[string]interface{}) *gojobs.CmdResult {
 }
 
 var cmds = []gojobs.Cmd{
-	{"cmd1", fn, module},
-	{"cmd2", fn, module},
-	{"cmd3", fn, module},
+	{
+		Name:   "cmd1",
+		Func:   fn,
+		Module: module,
+	},
+	{
+		Name:   "cmd2",
+		Func:   fn,
+		Module: module,
+	},
+	{
+		Name:   "cmd3",
+		Func:   fn,
+		Module: module,
+	},
 }
 
 func TestCmdRegister(t *testing.T) {
-
-	gojobs.NewCmdRegistry()
 
 	for _, cmd := range cmds {
 		log.Debugln(cmd)

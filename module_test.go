@@ -1,24 +1,28 @@
 package gojobs_test
 
 import (
-	"fmt"
+	//"fmt"
 	"testing"
 
 	"github.com/uthng/gojobs"
+	_ "github.com/uthng/gojobs/modules/all"
+	log "github.com/uthng/golog"
 )
 
 func TestLoadModules(t *testing.T) {
-	gojobs.NewCmdRegistry()
-	gojobs.NewModuleRegistry()
+	log.SetVerbosity(log.DEBUG)
+	//gojobs.NewCmdRegistry()
+	//gojobs.NewModuleRegistry()
 
-	gojobs.LoadModules("../app/modules")
+	//gojobs.LoadModules("../app/modules")
 
-	registry := gojobs.GetModuleRegistry()
-	fmt.Printf("Registry %#v\n", registry)
+	//registry := gojobs.GetModuleRegistry()
+	//fmt.Printf("Registry %#v\n", registry)
 
 	cmd, ok := gojobs.GetCmdByName("shell.ExecCmd")
 	if ok {
-		cmd.Func(nil)
+		result := cmd.Func(map[string]interface{}{"cmd": "ls -la"})
+		log.Infoln(result)
 	} else {
 		t.Fail()
 	}

@@ -22,8 +22,8 @@ var moduleRegistry *ModuleRegistry
 
 ////////// DEFINITION OF ALL FUNCTIONS /////////////////
 
-// NewModuleRegistry initializes a new registry for loaded modules
-func NewModuleRegistry() {
+// init initializes a new registry for loaded modules
+func init() {
 	if moduleRegistry == nil {
 		log.Debugln("Instancie a new module registry")
 		moduleRegistry = &ModuleRegistry{}
