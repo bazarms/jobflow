@@ -14,15 +14,10 @@ import (
 
 /////////// DECLARATION OF ALL TYPES //////////////////////////
 
-// Context is type interface{} to contain map of variables
-// to render in tasks
-type Context interface{}
-
 // Job describes structure of a job
 type Job struct {
+	Name  string
 	Start *Task
-	//    OnFailure   FailureFunc
-	Context Context
 
 	Tasks         []*Task
 	ValueRegistry *ValueRegistry
@@ -41,8 +36,11 @@ type Task struct {
 ////////// DEFINITION OF ALL FUNCTIONS ///////////////////////////
 
 // NewJob instancies a new Job
-func NewJob() *Job {
-	job := &Job{}
+func NewJob(name string) *Job {
+	job := &Job{
+		Name: name,
+	}
+
 	job.ValueRegistry = NewValueRegistry()
 
 	return job
@@ -69,9 +67,6 @@ func (job *Job) Run(tasks string) error {
 	} else {
 		// Run complete taskflow by running the first task
 		err = job.RunAllTasks(job.Start)
-		//for _, task := range job.Tasks {
-		//fmt.Printf("Running task \"%s\"\n", task.Name)
-		//err := task.Func(job.Context)
 	}
 
 	log.Debugln("ValueRegistry:", job.ValueRegistry)

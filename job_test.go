@@ -38,7 +38,7 @@ func TestCheckTasksSuccess(t *testing.T) {
 		Func: nil,
 	}
 
-	w := gojobs.NewJob()
+	w := gojobs.NewJob("Job 1")
 	w.Start = task1
 	w.AddTask(task1)
 	w.AddTask(task2)
@@ -81,7 +81,7 @@ func TestCheckTasksOnFailure(t *testing.T) {
 		Func: nil,
 	}
 
-	w := gojobs.NewJob()
+	w := gojobs.NewJob("Job 2")
 	w.Start = task1
 	w.AddTask(task1)
 	w.AddTask(task2)
@@ -124,7 +124,7 @@ func TestCheckTasksOnSuccess(t *testing.T) {
 		Func: nil,
 	}
 
-	w := gojobs.NewJob()
+	w := gojobs.NewJob("Job 3")
 	w.Start = task1
 	w.AddTask(task1)
 	w.AddTask(task2)
@@ -150,7 +150,7 @@ func TestOneTaskJob(t *testing.T) {
 		},
 	}
 
-	w := gojobs.NewJob()
+	w := gojobs.NewJob("Job 4")
 	w.Start = task
 	w.AddTask(task)
 
@@ -232,7 +232,7 @@ func TestMultipleTasks(t *testing.T) {
 		},
 	}
 
-	w := gojobs.NewJob()
+	w := gojobs.NewJob("Job 5")
 	w.Start = task1
 	w.AddTask(task1)
 	w.AddTask(task2)
