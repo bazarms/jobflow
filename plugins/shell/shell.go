@@ -18,7 +18,7 @@ var module = gojobs.Module{
 // List of available commands for this module
 var commands = []gojobs.Cmd{
 	{
-		Name:   "ExecCmd",
+		Name:   "exec",
 		Func:   ExecCmd,
 		Module: module,
 	},

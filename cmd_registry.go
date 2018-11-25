@@ -83,7 +83,7 @@ func GetCmdRegistry() *CmdRegistry {
 func CmdRegister(cmd Cmd) error {
 	// Name in commande registry = <module name>.<cmd name>
 	var name = cmd.Module.Name + "." + cmd.Name
-	log.Infoln(name, cmdRegistry)
+
 	// Verify if command already exists in the registry
 	_, ok := cmdRegistry.CmdList[name]
 	if ok == false {

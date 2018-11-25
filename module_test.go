@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/uthng/gojobs"
-	_ "github.com/uthng/gojobs/modules/all"
+	_ "github.com/uthng/gojobs/plugins/all"
 	log "github.com/uthng/golog"
 )
 
@@ -19,7 +19,7 @@ func TestLoadModules(t *testing.T) {
 	//registry := gojobs.GetModuleRegistry()
 	//fmt.Printf("Registry %#v\n", registry)
 
-	cmd, ok := gojobs.GetCmdByName("shell.ExecCmd")
+	cmd, ok := gojobs.GetCmdByName("shell.exec")
 	if ok {
 		result := cmd.Func(map[string]interface{}{"cmd": "ls -la"})
 		log.Infoln(result)
