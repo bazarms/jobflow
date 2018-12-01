@@ -55,6 +55,8 @@ func (job *Job) Run(tasks string) error {
 	var res bool
 	var err error
 
+	log.Infoln("JOB RUN STARTED")
+
 	// Check the name of all tasks indicated in taskflow
 	res = job.CheckTasks()
 	if res == false {
@@ -105,7 +107,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		}
 
 		if s.Func == nil {
-			log.Warnln("Task ignored", "task", task, "reason", "func is nil")
+			log.Warnln("Ignored", "task", task, "reason", "func is nil")
 			continue
 		}
 
@@ -113,7 +115,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		// if it exists with  Value registry
 		err = job.RenderTaskTemplate(s, job.ValueRegistry.ValueList)
 		if err != nil {
-			log.Errorw("Template rendering error", "task", s.Name)
+			log.Errorw("Template rendering error", "task", s.Name, "err", err)
 			return err
 		}
 
@@ -126,7 +128,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 			return s.Result.Error
 		}
 
-		log.Infow("Task result", "status", "OK")
+		log.Infow("Result", "task", s.Name, "status", "OK")
 	}
 
 	return nil
@@ -139,7 +141,7 @@ func (job *Job) RunAllTasks(task *Task) error {
 	log.Infow("Running", "task", task.Name)
 
 	if task.Func == nil {
-		log.Warnw("Task ignored", "task", task.Name, "reason", "func is nil")
+		log.Warnw("Ignored", "task", task.Name, "reason", "func is nil")
 		return nil
 	}
 
@@ -147,7 +149,7 @@ func (job *Job) RunAllTasks(task *Task) error {
 	// if it exists with  Value registry
 	err := job.RenderTaskTemplate(task, job.ValueRegistry.ValueList)
 	if err != nil {
-		log.Errorw("Error templating", "task", task.Name)
+		log.Errorw("Error templating", "task", task.Name, "err", err)
 		return err
 	}
 
@@ -163,7 +165,7 @@ func (job *Job) RunAllTasks(task *Task) error {
 			job.RunAllTasks(taskFailure)
 		}
 	} else {
-		log.Infow("Task result", "status", "OK")
+		log.Infow("Result", "task", task.Name, "status", "OK")
 		// Go the task of Success if specified
 		if len(task.OnSuccess) > 0 {
 			taskSuccess, _ := job.GetTaskByName(task.OnSuccess)

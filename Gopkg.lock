@@ -26,6 +26,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:865079840386857c809b72ce300be7580cb50d3d3129ce11bf9aa6ca2bc1934a"
   name = "github.com/fatih/color"
   packages = ["."]
@@ -74,6 +82,14 @@
   version = "v0.0.4"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:08d65904057412fc0270fc4812a1c90c594186819243160dc779a402d4b6d0bc"
   name = "github.com/spf13/cast"
   packages = ["."]
@@ -82,12 +98,20 @@
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  pruneopts = "UT"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
+
+[[projects]]
   branch = "master"
-  digest = "1:e3b5b55f9ee377373c6c128f37f91b3c51a4878f3cf3650d2553465c3a9ededd"
+  digest = "1:3d628b8b5b902c761b5ced2daeb4cf714ef8a2f35071a38abbd226f31177d94b"
   name = "github.com/uthng/golog"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ff4de0cac9da0fa43d38729f004b88d443a40b67"
+  revision = "6aa091955e9a96d393cc5c5c81dc7f5efb1e551b"
 
 [[projects]]
   branch = "master"
@@ -121,6 +145,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Masterminds/sprig",
+    "github.com/spf13/cast",
+    "github.com/stretchr/testify/assert",
     "github.com/uthng/golog",
     "github.com/uthng/goutils",
   ]

@@ -2,7 +2,7 @@ package gojobs_test
 
 import (
 	"errors"
-	"fmt"
+	//"fmt"
 	"testing"
 
 	"github.com/uthng/gojobs"
@@ -172,7 +172,6 @@ func TestMultipleTasks(t *testing.T) {
 	task1 := &gojobs.Task{
 		Name: "Task1",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Task1: OK")
 			return &gojobs.CmdResult{Error: nil, Result: nil}
 		},
 		OnFailure: "Error",
@@ -181,7 +180,6 @@ func TestMultipleTasks(t *testing.T) {
 	task3 := &gojobs.Task{
 		Name: "Task3",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Task3: NOK")
 			return &gojobs.CmdResult{Error: errors.New("Task3: NOK"), Result: nil}
 		},
 		OnFailure: "Rollback1",
@@ -190,7 +188,6 @@ func TestMultipleTasks(t *testing.T) {
 	task2 := &gojobs.Task{
 		Name: "Task2",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Task2: OK")
 			return &gojobs.CmdResult{Error: nil, Result: nil}
 		},
 		OnSuccess: "Task3",
@@ -199,7 +196,6 @@ func TestMultipleTasks(t *testing.T) {
 	task4 := &gojobs.Task{
 		Name: "Task4",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Task4: OK")
 			return &gojobs.CmdResult{Error: nil, Result: nil}
 		},
 		OnFailure: "Error",
@@ -208,7 +204,6 @@ func TestMultipleTasks(t *testing.T) {
 	rollback1 := &gojobs.Task{
 		Name: "Rollback1",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Rollback1: OK")
 			return &gojobs.CmdResult{Error: nil, Result: nil}
 		},
 		OnFailure: "Error",
@@ -218,7 +213,6 @@ func TestMultipleTasks(t *testing.T) {
 	rollback2 := &gojobs.Task{
 		Name: "Rollback2",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Rollback2: OK")
 			return &gojobs.CmdResult{Error: nil, Result: nil}
 		},
 		OnFailure: "Error",
@@ -227,7 +221,6 @@ func TestMultipleTasks(t *testing.T) {
 	err := &gojobs.Task{
 		Name: "Error",
 		Func: func(m map[string]interface{}) *gojobs.CmdResult {
-			fmt.Println("Error: OK")
 			return &gojobs.CmdResult{Error: nil, Result: nil}
 		},
 	}
