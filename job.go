@@ -69,14 +69,14 @@ func (job *Job) Run(tasks string) error {
 		err = job.RunAllTasks(job.Start)
 	}
 
-	log.Debugln("ValueRegistry:", job.ValueRegistry)
+	log.Debugw("Value Registry", "registry", job.ValueRegistry)
 
 	if err != nil {
-		log.Error("JOB RUN FAILED")
+		log.Errorln("JOB RUN FAILED")
 		return err
 	}
 
-	log.Info("JOB RUN COMPLETED")
+	log.Infoln("JOB RUN COMPLETED")
 
 	return nil
 }
@@ -96,7 +96,7 @@ func (job *Job) AddTask(task *Task) {
 // in command line parameter. It return error if a task fails
 func (job *Job) RunTaskByTask(tasks string) error {
 	for _, task := range strings.Split(tasks, ",") {
-		log.Infoln("Running task:", task)
+		log.Infow("Running", "task", task)
 
 		s, err := job.GetTaskByName(task)
 		if s == nil {
@@ -105,7 +105,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		}
 
 		if s.Func == nil {
-			log.Warnln("Task ignored: func is nil")
+			log.Warnln("Task ignored", "task", task, "reason", "func is nil")
 			continue
 		}
 
@@ -113,7 +113,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		// if it exists with  Value registry
 		err = job.RenderTaskTemplate(s, job.ValueRegistry.ValueList)
 		if err != nil {
-			log.Errorln("Error templating task:", s.Name)
+			log.Errorw("Template rendering error", "task", s.Name)
 			return err
 		}
 
@@ -122,11 +122,11 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		job.ValueRegistry.AddValue(s.Name, s.Result.Result)
 
 		if s.Result.Error != nil {
-			log.Errorln("Error executing task:", s.Result.Error)
+			log.Errorln("Execution error", "task", s.Name, "err", s.Result.Error)
 			return s.Result.Error
 		}
 
-		log.Infoln("Task result: OK")
+		log.Infow("Task result", "status", "OK")
 	}
 
 	return nil
@@ -136,10 +136,10 @@ func (job *Job) RunTaskByTask(tasks string) error {
 // check if task on failure is specified and then go on it.
 // Otherwise, check and go on task on Success if specified.
 func (job *Job) RunAllTasks(task *Task) error {
-	log.Infoln("Running task:", task.Name)
+	log.Infow("Running", "task", task.Name)
 
 	if task.Func == nil {
-		log.Warnln("Task ignored: func is nil")
+		log.Warnw("Task ignored", "task", task.Name, "reason", "func is nil")
 		return nil
 	}
 
@@ -147,7 +147,7 @@ func (job *Job) RunAllTasks(task *Task) error {
 	// if it exists with  Value registry
 	err := job.RenderTaskTemplate(task, job.ValueRegistry.ValueList)
 	if err != nil {
-		log.Errorln("Error templating task:", task.Name)
+		log.Errorw("Error templating", "task", task.Name)
 		return err
 	}
 
@@ -156,14 +156,14 @@ func (job *Job) RunAllTasks(task *Task) error {
 	job.ValueRegistry.AddValue(task.Name, task.Result.Result)
 
 	if task.Result.Error != nil {
-		log.Errorln("Error executing task:", task.Result.Error)
+		log.Errorw("Execution error", "task", task.Name, "err", task.Result.Error)
 		// Go the task of failure if specified
 		if len(task.OnFailure) > 0 {
 			taskFailure, _ := job.GetTaskByName(task.OnFailure)
 			job.RunAllTasks(taskFailure)
 		}
 	} else {
-		log.Infoln("Task result: OK")
+		log.Infow("Task result", "status", "OK")
 		// Go the task of Success if specified
 		if len(task.OnSuccess) > 0 {
 			taskSuccess, _ := job.GetTaskByName(task.OnSuccess)
@@ -210,14 +210,14 @@ func (job *Job) CheckTasks() bool {
 		if task.OnSuccess != "" {
 			res = utils.IsElementInArray(task.OnSuccess, taskNames, fn)
 			if res == false {
-				log.Errorln("Task does not exist !", task.OnSuccess)
+				log.Errorw("Task does not exist !", "task", task.OnSuccess)
 				return false
 			}
 		}
 		if task.OnFailure != "" {
 			res = utils.IsElementInArray(task.OnFailure, taskNames, fn)
 			if res == false {
-				log.Errorln("Task does not exist !", task.OnFailure)
+				log.Errorw("Task does not exist !", "task", task.OnFailure)
 				return false
 			}
 		}
@@ -238,26 +238,26 @@ func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) erro
 		switch v := value.(type) {
 		case string:
 			// Create a new template with name : task name + key
-			log.Debugf("Templating value %v type %T", value.(string), v)
+			log.Debugw("Template rendering", "value", value.(string), "type", v)
 			t := template.New(task.Name + "-" + key).Funcs(sprig.TxtFuncMap())
 			t, err = t.Parse(value.(string))
 			if err != nil {
-				log.Errorf("[Task %v, Param %v]: Error parsing template", task.Name, key)
+				log.Errorw("Template parsing error", "task", task.Name, "key", key)
 				return err
 			}
 
 			err = t.Execute(&tpl, data)
 			if err != nil {
-				log.Errorf("[Task %v, Param %v]: Error rendering template", task.Name, key)
+				log.Errorw("Template rendering error", "task", task.Name, "key", key)
 				return err
 			}
 
 			// Assign new rendered value to param key
-			log.Debugf("[Task %v, Param %v]: New rendered value %v", task.Name, key, tpl.String())
+			log.Debugw("New value rendered", "task", task.Name, "key", key, "tpl", tpl.String())
 			task.Params[key] = tpl.String()
 
 		default:
-			log.Warnf("Param type %T ignored", v)
+			log.Warnw("Param type ignored", "type", v)
 		}
 	}
 

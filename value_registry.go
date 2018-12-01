@@ -21,7 +21,7 @@ type ValueRegistry struct {
 
 // NewValueRegistry initialize a unique instance of value registry
 func NewValueRegistry() *ValueRegistry {
-	log.Debugln("Instanciate new value registry")
+	log.Debugln("Initializing a new value registry")
 	v := &ValueRegistry{
 		ValueList: make(map[string]interface{}),
 	}
@@ -36,7 +36,7 @@ func (v *ValueRegistry) AddValue(key string, value interface{}) error {
 	_, ok := v.ValueList[key]
 	if ok == false {
 		v.ValueList[key] = value
-		log.Debugf("Value added: [key: %v]; [value: %v]", key, value)
+		log.Debugw("Value added", "key", key, "value", value)
 	}
 
 	return nil
@@ -49,8 +49,7 @@ func (v *ValueRegistry) DeleteValue(key string) error {
 	_, ok := v.ValueList[key]
 	if ok == true {
 		delete(v.ValueList, key)
-		log.Debugf("Value deleted: [key: %v]", key)
-
+		log.Debugw("Value deleted", "key", key)
 	}
 
 	return nil

@@ -55,7 +55,7 @@ var cmdRegistry *CmdRegistry
 
 // init initialize a unique instance of command registry
 func init() {
-	log.Debugln("Instanciate new command registry")
+	log.Debugln("Initializing a new command registry")
 	if cmdRegistry == nil {
 		cmdRegistry = &CmdRegistry{}
 		cmdRegistry.CmdList = make(map[string]Cmd)
@@ -64,7 +64,7 @@ func init() {
 
 // NewCmdResult instanciates a new command result
 func NewCmdResult() *CmdResult {
-	log.Debugln("Instanciate a new command result")
+	log.Debugln("Intializing a new command result")
 	c := &CmdResult{
 		Error:  nil,
 		Result: make(map[string]interface{}),
