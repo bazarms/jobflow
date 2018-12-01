@@ -71,14 +71,14 @@ func (job *Job) Run(tasks string) error {
 		err = job.RunAllTasks(job.Start)
 	}
 
-	log.Debugw("Value Registry", "registry", job.ValueRegistry)
-
 	if err != nil {
 		log.Errorln("JOB RUN FAILED")
 		return err
 	}
 
 	log.Infoln("JOB RUN COMPLETED")
+
+	log.Debugw("Value Registry", "registry", job.ValueRegistry)
 
 	return nil
 }
@@ -240,7 +240,7 @@ func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) erro
 		switch v := value.(type) {
 		case string:
 			// Create a new template with name : task name + key
-			log.Debugw("Template rendering", "value", value.(string), "type", v)
+			log.Debugw("Template rendering", "task", task.Name, "value", value.(string), "type", v)
 			t := template.New(task.Name + "-" + key).Funcs(sprig.TxtFuncMap())
 			t, err = t.Parse(value.(string))
 			if err != nil {
