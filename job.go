@@ -120,14 +120,15 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		}
 
 		s.Result = s.Func(s.Params)
-		// In all cases, add task result to value registry
-		job.ValueRegistry.AddValue(s.Name, s.Result.Result)
 
 		if s.Result.Error != nil {
 			log.Errorln("Execution error", "task", s.Name, "err", s.Result.Error)
+			log.Errorw("Result", "task", s.Name, "status", "KO")
 			return s.Result.Error
 		}
 
+		// In all cases, add task result to value registry
+		job.ValueRegistry.AddValue(s.Name, s.Result.Result)
 		log.Infow("Result", "task", s.Name, "status", "OK")
 	}
 
@@ -154,17 +155,19 @@ func (job *Job) RunAllTasks(task *Task) error {
 	}
 
 	task.Result = task.Func(task.Params)
-	// In all cases, add task result to value registry
-	job.ValueRegistry.AddValue(task.Name, task.Result.Result)
 
 	if task.Result.Error != nil {
 		log.Errorw("Execution error", "task", task.Name, "err", task.Result.Error)
+		log.Errorw("Result", "task", task.Name, "status", "KO")
 		// Go the task of failure if specified
 		if len(task.OnFailure) > 0 {
 			taskFailure, _ := job.GetTaskByName(task.OnFailure)
 			job.RunAllTasks(taskFailure)
 		}
 	} else {
+		// In all cases, add task result to value registry
+		job.ValueRegistry.AddValue(task.Name, task.Result.Result)
+
 		log.Infow("Result", "task", task.Name, "status", "OK")
 		// Go the task of Success if specified
 		if len(task.OnSuccess) > 0 {
