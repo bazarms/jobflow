@@ -59,7 +59,7 @@ func CmdBuild(params map[string]interface{}) *gojobs.CmdResult {
 	o := "-output=\"" + cast.ToString(value) + "\""
 	args = append(args, o)
 
-	log.Debugln("gox: execute command:", args)
+	log.Debugw("Executing command", "args", args)
 
 	// Execute kubectl command
 	cmd := exec.Command(args[0], args[1:len(args)]...)

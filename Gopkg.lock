@@ -107,11 +107,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3d628b8b5b902c761b5ced2daeb4cf714ef8a2f35071a38abbd226f31177d94b"
+  digest = "1:92d0ca02d54e6643bf28e1c4645454cadc30698619d7d9bb7c6584cadd7dadbd"
   name = "github.com/uthng/golog"
   packages = ["."]
   pruneopts = "UT"
-  revision = "6aa091955e9a96d393cc5c5c81dc7f5efb1e551b"
+  revision = "c9908cca61db9669ae6f387c7356b607d21f55d9"
 
 [[projects]]
   branch = "master"
