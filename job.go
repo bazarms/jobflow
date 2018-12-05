@@ -3,10 +3,13 @@ package gojobs
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"reflect"
 	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/spf13/cast"
 
 	log "github.com/uthng/golog"
 	utils "github.com/uthng/goutils"
@@ -267,4 +270,34 @@ func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) erro
 	}
 
 	return nil
+}
+
+//////////////// INTERNAL FUNCTIONS ////////////////////
+
+//expandEnvContext expands values of env variables
+func expandEnvContext(data map[string]interface{}) map[string]interface{} {
+	d := make(map[string]interface{})
+
+	for k, v := range data {
+		kind := reflect.ValueOf(v).Kind()
+
+		// Check if kind is struct or ptr, do nothing
+		if kind == reflect.Array || kind == reflect.Slice {
+			arr := []string{}
+			for _, it := range cast.ToStringSlice(v) {
+				arr = append(arr, os.ExpandEnv(it))
+			}
+			d[k] = arr
+		} else if kind == reflect.Map {
+			m := expandEnvContext(cast.ToStringMap(v))
+			d[k] = m
+		} else if kind == reflect.Struct || kind == reflect.Ptr {
+			// Do nothing
+			d[k] = v
+		} else {
+			d[k] = os.ExpandEnv(cast.ToString(v))
+		}
+	}
+
+	return d
 }
