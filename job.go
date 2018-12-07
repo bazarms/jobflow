@@ -239,7 +239,7 @@ func (job *Job) CheckTasks() bool {
 func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) error {
 	var tpl bytes.Buffer
 
-	// Expand env vars
+	// Expand env vars for context
 	d := expandEnvContext(data)
 
 	for key, value := range task.Params {
@@ -284,7 +284,11 @@ func renderParamTemplate(task, key string, value interface{}, data map[string]in
 	// Create a new template with name : task name + key
 	log.Debugw("Template rendering", "task", task, "value", value.(string), "type", reflect.TypeOf(value).Name())
 	t := template.New(task + "-" + key).Funcs(sprig.TxtFuncMap())
-	t, err := t.Parse(cast.ToString(value))
+
+	// Expand env vars before template rendering
+	v := cast.ToString(value)
+	v = os.ExpandEnv(v)
+	t, err := t.Parse(cast.ToString(v))
 	if err != nil {
 		log.Errorw("Template parsing error", "task", task, "key", key)
 		return "", err

@@ -315,9 +315,9 @@ var4:
 `)
 
 	output := map[string]interface{}{
-		"param1": "var1",
-		"param2": []string{"1", "2", "3"},
-		"param3": "var412",
+		"param1": "var1 var1",
+		"param2": []string{"2", "2", "3"},
+		"param3": "var412 var412",
 	}
 
 	data := make(map[string]interface{})
@@ -337,9 +337,9 @@ var4:
 			return &CmdResult{Error: nil, Result: m}
 		},
 		Params: map[string]interface{}{
-			"param1": "{{ .context.var1 }}",
-			"param2": []string{"1", "{{ index .context.var2 1 }}", "3"},
-			"param3": "{{ .context.var4.var41.var412 }}",
+			"param1": "$VAR1 {{ .context.var1 }}",
+			"param2": []string{"$VAR21", "{{ index .context.var2 1 }}", "3"},
+			"param3": "$VAR412 {{ .context.var4.var41.var412 }}",
 		},
 	}
 
