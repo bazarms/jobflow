@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 	//"github.com/uthng/gojobs"
+	//log "github.com/uthng/golog"
 )
 
 func TestCheckTasksSuccess(t *testing.T) {
@@ -292,4 +293,65 @@ var4:
 	context := expandEnvContext(data)
 
 	assert.Equal(t, context, output)
+}
+
+func TestRenderTaskTemplate(t *testing.T) {
+	ctx := []byte(`
+var1: $VAR1
+var2:
+  - 1
+  - $VAR21
+  - 3
+var3:
+  - var31
+  - $VAR32
+  - var33
+var4:
+  var41:
+    var411: var411
+    var412: ${VAR412}
+  var42: "var42"
+  var43: $VAR43
+`)
+
+	output := map[string]interface{}{
+		"param1": "var1",
+		"param2": []string{"1", "2", "3"},
+		"param3": "var412",
+	}
+
+	data := make(map[string]interface{})
+
+	err := yaml.Unmarshal(ctx, data)
+	assert.Nil(t, err)
+
+	os.Setenv("VAR1", "var1")
+	os.Setenv("VAR21", "2")
+	os.Setenv("VAR32", "var32")
+	os.Setenv("VAR412", "var412")
+	os.Setenv("VAR43", "var43")
+
+	task1 := Task{
+		Name: "Task 1",
+		Func: func(m map[string]interface{}) *CmdResult {
+			return &CmdResult{Error: nil, Result: m}
+		},
+		Params: map[string]interface{}{
+			"param1": "{{ .context.var1 }}",
+			"param2": []string{"1", "{{ index .context.var2 1 }}", "3"},
+			"param3": "{{ .context.var4.var41.var412 }}",
+		},
+	}
+
+	w := NewJob("Job 1")
+	w.ValueRegistry.AddValue("context", data)
+	w.Start = &task1
+
+	res := w.Run("")
+	assert.Nil(t, res)
+
+	// Check result of task1
+	result, ok := w.ValueRegistry.GetValueByKey("Task 1")
+	assert.Equal(t, true, ok)
+	assert.Equal(t, result, output)
 }

@@ -237,35 +237,39 @@ func (job *Job) CheckTasks() bool {
 // RenderTaskTemplate renders go template in each param with
 // the values in ValueRegistry
 func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) error {
-	var err error
 	var tpl bytes.Buffer
+
+	// Expand env vars
+	d := expandEnvContext(data)
 
 	for key, value := range task.Params {
 		tpl.Reset()
+
+		kind := reflect.ValueOf(value).Kind()
 		// Render only string value
-		switch v := value.(type) {
-		case string:
-			// Create a new template with name : task name + key
-			log.Debugw("Template rendering", "task", task.Name, "value", value.(string), "type", v)
-			t := template.New(task.Name + "-" + key).Funcs(sprig.TxtFuncMap())
-			t, err = t.Parse(value.(string))
+		// Check if kind is struct or ptr, do nothing
+		if kind == reflect.Array || kind == reflect.Slice {
+			arr := []string{}
+
+			for idx, it := range cast.ToStringSlice(value) {
+				str, err := renderParamTemplate(task.Name, key+"["+cast.ToString(idx)+"]", it, d)
+				if err != nil {
+					return err
+				}
+
+				arr = append(arr, str)
+			}
+
+			task.Params[key] = arr
+		} else if kind == reflect.Map || kind == reflect.Struct || kind == reflect.Ptr {
+			log.Warnw("Param kind ignored", "kind", kind)
+		} else {
+			str, err := renderParamTemplate(task.Name, key, value, d)
 			if err != nil {
-				log.Errorw("Template parsing error", "task", task.Name, "key", key)
 				return err
 			}
 
-			err = t.Execute(&tpl, data)
-			if err != nil {
-				log.Errorw("Template rendering error", "task", task.Name, "key", key)
-				return err
-			}
-
-			// Assign new rendered value to param key
-			log.Debugw("New value rendered", "task", task.Name, "key", key, "tpl", tpl.String())
-			task.Params[key] = tpl.String()
-
-		default:
-			log.Warnw("Param type ignored", "type", v)
+			task.Params[key] = str
 		}
 	}
 
@@ -273,6 +277,30 @@ func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) erro
 }
 
 //////////////// INTERNAL FUNCTIONS ////////////////////
+
+func renderParamTemplate(task, key string, value interface{}, data map[string]interface{}) (string, error) {
+	var tpl bytes.Buffer
+
+	// Create a new template with name : task name + key
+	log.Debugw("Template rendering", "task", task, "value", value.(string), "type", reflect.TypeOf(value).Name())
+	t := template.New(task + "-" + key).Funcs(sprig.TxtFuncMap())
+	t, err := t.Parse(cast.ToString(value))
+	if err != nil {
+		log.Errorw("Template parsing error", "task", task, "key", key)
+		return "", err
+	}
+
+	err = t.Execute(&tpl, data)
+	if err != nil {
+		log.Errorw("Template rendering error", "task", task, "key", key)
+		return "", err
+	}
+
+	// Assign new rendered value to param key
+	log.Debugw("New value rendered", "task", task, "key", key, "tpl", tpl.String())
+
+	return tpl.String(), nil
+}
 
 //expandEnvContext expands values of env variables
 func expandEnvContext(data map[string]interface{}) map[string]interface{} {
