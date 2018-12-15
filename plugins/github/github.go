@@ -212,6 +212,7 @@ func (c *client) generateChangelog(from, to time.Time) string {
 	var msgs string
 	var err error
 
+	log.Debugw("Generate changelog", "from", from.Local(), "to", to.Local())
 	if !c.changelog {
 		log.Warnln("Option changelog is disabled. Do nothing")
 		return msgs
@@ -236,6 +237,7 @@ func (c *client) generateChangelog(from, to time.Time) string {
 		}
 
 		commits, _, err = c.repositories.ListCommits(c.ctx, c.user, c.repository, opt)
+		log.Debugw("List commits", "opt", opt, "commits", commits)
 		if err != nil {
 			log.Errorw("Error while getting list of commits", "from", from)
 			return msgs
@@ -271,7 +273,7 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		log.Errorw("Cannot get latest release", "tag", c.tag, "err", err)
 		return nil, err
 	}
-
+	log.Debugw("Get releases by tag", "tag", c.tag, "release", wantedRelease)
 	// Exist a release with same tag
 	// Check different options
 	if wantedRelease != nil {
@@ -294,6 +296,7 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 	// Get latest release => date
 	// if no release until now => no date from
 	latestRelease, _, err := c.repositories.GetLatestRelease(c.ctx, c.user, c.repository)
+	log.Debugw("Get latest release", "release", latestRelease)
 	if err != nil {
 		log.Errorw("Error while getting latest release", "err", err)
 		return nil, err
@@ -305,6 +308,7 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 
 	// Get date of commitish => date to
 	commit, _, err := c.repositories.GetCommit(c.ctx, c.user, c.repository, c.commitish)
+	log.Debugw("Get commit", "commitish", c.commitish, "commit", commit)
 	if err != nil {
 		log.Errorw("Error while getting commit", "sha", c.commitish, "err", err)
 		return nil, err
