@@ -27,6 +27,12 @@ type repositoriesService interface {
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
 }
 
+type gitService interface {
+	CreateRef(ctx context.Context, owner string, repo string, ref *github.Reference) (*github.Reference, *github.Response, error)
+	GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error)
+	DeleteRef(ctx context.Context, owner string, repo string, ref string) (*github.Response, error)
+}
+
 type client struct {
 	ctx context.Context
 
@@ -52,6 +58,7 @@ type client struct {
 	soft       bool
 
 	repositories repositoriesService
+	git          gitService
 }
 
 const (
@@ -197,6 +204,7 @@ func newClientByToken(token string) *client {
 	githubClient := github.NewClient(tc)
 
 	c.repositories = githubClient.Repositories
+	c.git = githubClient.Git
 
 	return c
 }
@@ -293,6 +301,22 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		}
 	}
 
+	// Check if a tag with same number already exists
+	wantedRefTag, _, err := c.git.GetRef(c.ctx, c.user, c.repository, "refs/tags/"+c.tag)
+	// No corresponding tag found, just raise a warning
+	if err != nil {
+		log.Warnw("Cannot get reference tag", "tag", c.tag, "err", err)
+	}
+
+	// Remove ref tag
+	if wantedRefTag != nil {
+		_, err := c.git.DeleteRef(c.ctx, c.user, c.repository, "refs/tags/"+c.tag)
+		if err != nil {
+			log.Errorw("Cannot delete reference tag", "tag", c.tag, "err", err)
+			return nil, err
+		}
+	}
+
 	// Get latest release => date
 	// if no release until now => no date from
 	latestRelease, _, err := c.repositories.GetLatestRelease(c.ctx, c.user, c.repository)
@@ -329,6 +353,21 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		return nil, fmt.Errorf("cannot generate changelog")
 	}
 
+	// (Re)Create ref tag
+	refTag := "refs/tags/" + c.tag
+	newRefTag := &github.Reference{
+		Ref: &refTag,
+		Object: &github.GitObject{
+			SHA: &c.commitish,
+		},
+	}
+
+	_, _, err = c.git.CreateRef(c.ctx, c.user, c.repository, newRefTag)
+	if err != nil {
+		log.Errorw("Cannot create new ref tag", "ref", newRefTag, "err", err)
+		return nil, err
+	}
+
 	// Create new release
 	newRelease := &github.RepositoryRelease{
 		TagName:         &c.tag,
@@ -341,7 +380,7 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 
 	r, _, err := c.repositories.CreateRelease(c.ctx, c.user, c.repository, newRelease)
 	if err != nil {
-		log.Errorw("Cannot create new release", "release", r)
+		log.Errorw("Cannot create new release", "release", newRelease, "err", err)
 		return nil, err
 	}
 
