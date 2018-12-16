@@ -28,9 +28,17 @@ type release struct {
 	createAt  time.Time
 }
 
+type tag struct {
+	ref string
+	sha string
+}
+
 type fakeClient struct {
 	commits  []*commit
 	releases []*release
+	tags     []*tag
+	//repositories repositoriesService
+	//git          gitService
 }
 
 func (c *fakeClient) GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
@@ -111,8 +119,8 @@ func (c *fakeClient) GetReleaseByTag(ctx context.Context, owner, repo, tag strin
 	release := &github.RepositoryRelease{}
 
 	// Just simulate error
-	if c.releases == nil {
-		return nil, nil, fmt.Errorf("list of releases is nil")
+	if tag == "" || c.releases == nil {
+		return nil, nil, fmt.Errorf("error")
 	}
 
 	if len(c.releases) > 0 {
@@ -139,13 +147,18 @@ func (c *fakeClient) DeleteReleaseAsset(ctx context.Context, owner, repo string,
 }
 
 func (c *fakeClient) CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error) {
+	// Just simulate error
+	if release == nil {
+		return nil, nil, fmt.Errorf("error")
+	}
+
 	return release, nil, nil
 }
 
 func (c *fakeClient) GetCommit(ctx context.Context, owner, repo, sha string) (*github.RepositoryCommit, *github.Response, error) {
 
 	// Just simulate error
-	if sha == "error" {
+	if sha == "" || c.commits == nil {
 		return nil, nil, fmt.Errorf("error")
 	}
 
@@ -164,16 +177,65 @@ func (c *fakeClient) GetCommit(ctx context.Context, owner, repo, sha string) (*g
 	return nil, nil, nil
 }
 
-func newFakeClient() *client {
-	c := &client{
-		ctx: context.Background(),
+func (c *fakeClient) CreateRef(ctx context.Context, owner string, repo string, ref *github.Reference) (*github.Reference, *github.Response, error) {
+	// Just simulate error
+	if ref == nil {
+		return nil, nil, fmt.Errorf("error")
 	}
 
-	fc := &fakeClient{}
-	c.repositories = fc
-
-	return c
+	return ref, nil, nil
 }
+
+func (c *fakeClient) GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error) {
+
+	log.Infoln(c.tags, ref)
+	// Just simulate error
+	if ref == "" || c.tags == nil {
+		return nil, nil, fmt.Errorf("error")
+	}
+
+	for _, t := range c.tags {
+		if t.ref == ref {
+			refTag := &github.Reference{
+				Ref: &t.ref,
+				Object: &github.GitObject{
+					SHA: &t.sha,
+				},
+			}
+			return refTag, nil, nil
+		}
+	}
+
+	// No match => error as real func does
+	return nil, nil, fmt.Errorf("error")
+}
+
+func (c *fakeClient) DeleteRef(ctx context.Context, owner string, repo string, ref string) (*github.Response, error) {
+	// Just simulate error
+	if ref == "" {
+		return nil, fmt.Errorf("error")
+	}
+
+	for i, t := range c.tags {
+		if t.ref == ref {
+			c.tags = append(c.tags[:i], c.tags[i+1:]...)
+		}
+	}
+
+	return nil, nil
+}
+
+//func newFakeClient() *client {
+//c := &client{
+//ctx: context.Background(),
+//}
+
+//fc := &fakeClient{}
+//c.repositories = fc
+//c.git = fc
+
+//return c
+//}
 
 func getPtrString(str string) *string {
 	return &str
@@ -304,6 +366,18 @@ func TestCreateRelease(t *testing.T) {
 						},
 					},
 				},
+				git: &fakeClient{
+					tags: []*tag{
+						{
+							ref: "refs/tags/0.1.9",
+							sha: "555b53e7abf3b56b8e984c55ce9bebef8ee016eb",
+						},
+						{
+							ref: "refs/tags/0.2.0",
+							sha: "989b53e7abf3b56b8e984c55ce9bebef8ee016eb",
+						},
+					},
+				},
 			},
 			&github.RepositoryRelease{
 				TagName:         getPtrString("0.2.1"),
@@ -320,7 +394,7 @@ func TestCreateRelease(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			log.SetVerbosity(log.DEBUG)
 			release, err := tc.client.createRelease()
-			log.Infoln(release)
+
 			assert.Nil(t, err)
 			assert.Equal(t, tc.release, release)
 		})
