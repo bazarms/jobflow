@@ -3,7 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
-	//"os"
+	"os"
 	//"strings"
 	"testing"
 	"time"
@@ -144,6 +144,14 @@ func (c *fakeClient) DeleteRelease(ctx context.Context, owner, repo string, id i
 
 func (c *fakeClient) DeleteReleaseAsset(ctx context.Context, owner, repo string, id int64) (*github.Response, error) {
 	return nil, nil
+}
+
+func (c *fakeClient) ListReleaseAssets(ctx context.Context, owner, repo string, id int64, opt *github.ListOptions) ([]*github.ReleaseAsset, *github.Response, error) {
+	return nil, nil, nil
+}
+
+func (c *fakeClient) UploadReleaseAsset(ctx context.Context, owner, repo string, id int64, opt *github.UploadOptions, file *os.File) (*github.ReleaseAsset, *github.Response, error) {
+	return nil, nil, nil
 }
 
 func (c *fakeClient) CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error) {

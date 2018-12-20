@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	//"os/exec"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -23,8 +24,10 @@ type repositoriesService interface {
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
 	GetReleaseByTag(ctx context.Context, owner, repo, tag string) (*github.RepositoryRelease, *github.Response, error)
 	DeleteRelease(ctx context.Context, owner, repo string, id int64) (*github.Response, error)
-	DeleteReleaseAsset(ctx context.Context, owner, repo string, id int64) (*github.Response, error)
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
+	ListReleaseAssets(ctx context.Context, owner, repo string, id int64, opt *github.ListOptions) ([]*github.ReleaseAsset, *github.Response, error)
+	DeleteReleaseAsset(ctx context.Context, owner, repo string, id int64) (*github.Response, error)
+	UploadReleaseAsset(ctx context.Context, owner, repo string, id int64, opt *github.UploadOptions, file *os.File) (*github.ReleaseAsset, *github.Response, error)
 }
 
 type gitService interface {
@@ -49,6 +52,9 @@ type client struct {
 	// Changelog
 	changelog     bool
 	changelogType int
+
+	// Assets
+	assets []string
 
 	// Options
 	draft      bool
@@ -281,21 +287,21 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		log.Errorw("Cannot get latest release", "tag", c.tag, "err", err)
 		return nil, err
 	}
-	log.Debugw("Get releases by tag", "tag", c.tag, "release", wantedRelease)
+	log.Debugw("Get releases by tag", "tag", c.tag, "release", wantedRelease.GetName())
 	// Exist a release with same tag
 	// Check different options
 	if wantedRelease != nil {
 		// Delete all: release, assets to redo
 		if c.replace {
-			_, err := c.repositories.DeleteRelease(c.ctx, c.user, c.repository, *wantedRelease.ID)
+			// Delete all assets
+			err := c.deleteAssets(*wantedRelease.ID)
 			if err != nil {
-				log.Errorw("Cannot delete existing release", "tag", c.tag, "err", err)
 				return nil, err
 			}
 
-			_, err = c.repositories.DeleteReleaseAsset(c.ctx, c.user, c.repository, *wantedRelease.ID)
+			_, err = c.repositories.DeleteRelease(c.ctx, c.user, c.repository, *wantedRelease.ID)
 			if err != nil {
-				log.Errorw("Cannot delete existing release assets", "tag", c.tag, "err", err)
+				log.Errorw("Cannot delete existing release", "tag", c.tag, "err", err)
 				return nil, err
 			}
 		}
@@ -384,7 +390,57 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		return nil, err
 	}
 
+	// Upload assets
+	err = c.uploadAssets(r.GetID())
+	if err != nil {
+		return nil, err
+	}
+
 	return r, nil
+}
+
+// uploadAssets loops asset list and upload one by one to release
+func (c *client) uploadAssets(releaseID int64) error {
+	for _, asset := range c.assets {
+		f, err := os.Open(asset)
+		if err != nil {
+			log.Errorw("Cannot open the asset file", "asset", asset, "err", err)
+			return err
+		}
+
+		// Upload asset
+		_, _, err = c.repositories.UploadReleaseAsset(c.ctx, c.user, c.repository, releaseID, nil, f)
+		if err != nil {
+			log.Errorw("Cannot upload the asset file", "asset", asset, "release", releaseID, "err", err)
+			f.Close()
+			return err
+		}
+
+		f.Close()
+	}
+
+	return nil
+}
+
+// deleteAssets remove all assets of a given release
+func (c *client) deleteAssets(releaseID int64) error {
+	// Get a list of release assets
+	assets, _, err := c.repositories.ListReleaseAssets(c.ctx, c.user, c.repository, releaseID, nil)
+	if err != nil {
+		log.Errorw("Cannot get release assets", "tag", c.tag, "release", releaseID)
+		return err
+	}
+
+	// Loop to remove all assets
+	for _, asset := range assets {
+		_, err = c.repositories.DeleteReleaseAsset(c.ctx, c.user, c.repository, *asset.ID)
+		if err != nil {
+			log.Errorw("Cannot delete existing release assets", "tag", c.tag, "asset", asset.GetName(), "err", err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 // formatCommitChangelog parses commit message to build a changelog message
