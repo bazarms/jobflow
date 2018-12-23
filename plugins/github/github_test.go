@@ -10,10 +10,9 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/stretchr/testify/assert"
-
 	//"github.com/uthng/gojobs"
 	//"github.com/uthng/gojobs/plugins/github"
-	log "github.com/uthng/golog"
+	//log "github.com/uthng/golog"
 )
 
 type commit struct {
@@ -115,6 +114,27 @@ func (c *fakeClient) ListCommits(ctx context.Context, owner, repo string, opt *g
 	return commits, nil, nil
 }
 
+func (c *fakeClient) ListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
+	releases := []*github.RepositoryRelease{}
+
+	// Just simulate error
+	if c.releases == nil {
+		return nil, nil, fmt.Errorf("error")
+	}
+
+	for _, r := range c.releases {
+		release := &github.RepositoryRelease{}
+		release.TagName = &r.tag
+		release.TargetCommitish = &r.commitish
+		release.CreatedAt = &github.Timestamp{
+			Time: r.createAt,
+		}
+		releases = append(releases, release)
+	}
+
+	return releases, nil, nil
+}
+
 func (c *fakeClient) GetReleaseByTag(ctx context.Context, owner, repo, tag string) (*github.RepositoryRelease, *github.Response, error) {
 	release := &github.RepositoryRelease{}
 
@@ -196,7 +216,6 @@ func (c *fakeClient) CreateRef(ctx context.Context, owner string, repo string, r
 
 func (c *fakeClient) GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error) {
 
-	log.Infoln(c.tags, ref)
 	// Just simulate error
 	if ref == "" || c.tags == nil {
 		return nil, nil, fmt.Errorf("error")
@@ -400,7 +419,7 @@ func TestCreateRelease(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			log.SetVerbosity(log.DEBUG)
+			//log.SetVerbosity(log.DEBUG)
 			release, err := tc.client.createRelease()
 
 			assert.Nil(t, err)

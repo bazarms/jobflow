@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
-	//"github.com/spf13/cast"
+	"github.com/spf13/cast"
 	"golang.org/x/oauth2"
 
 	"github.com/uthng/gojobs"
@@ -21,6 +21,7 @@ import (
 type repositoriesService interface {
 	GetCommit(ctx context.Context, owner, repo, sha string) (*github.RepositoryCommit, *github.Response, error)
 	ListCommits(ctx context.Context, owner, repo string, opt *github.CommitsListOptions) ([]*github.RepositoryCommit, *github.Response, error)
+	ListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
 	GetReleaseByTag(ctx context.Context, owner, repo, tag string) (*github.RepositoryRelease, *github.Response, error)
 	DeleteRelease(ctx context.Context, owner, repo string, id int64) (*github.Response, error)
@@ -59,9 +60,11 @@ type client struct {
 	// Options
 	draft      bool
 	prerelease bool
-	delete     bool
-	replace    bool
-	soft       bool
+	//delete     bool
+	replace bool
+	//soft       bool
+
+	dryRun bool
 
 	repositories repositoriesService
 	git          gitService
@@ -75,9 +78,9 @@ const (
 )
 
 var module = gojobs.Module{
-	Name:        "git",
+	Name:        "github",
 	Version:     "0.1",
-	Description: "Commands related to git",
+	Description: "Github operations: release, changelog etc.",
 }
 
 // List of available commands for this module
@@ -109,86 +112,159 @@ func init() {
 // - description: release description. Possible values: "changelog" or your content. If param is not specified, "changelog" is used.
 // - changelog: true/false. Generate changelog or not. Default value: true event if it is not specified
 // - changelog_type: 0 = "commit", 1 = "issue". By default 0 = "commit" is used
+// - assets: list of string paths to files to upload to the release. Default: empty array
 // - draft: true/false. Just a draft and no publish
 // - prerelease: true/false
 // - delete: true/false. Delete release and its git tag in advance if it exists
 // - replace: replace artifacts if it is already uploaded
 // - soft: true/false. Stop uploading if the same tag already exists
+// - dry_run: true/false. Only display messages, not action performed. Default: false
 func CmdRelease(params map[string]interface{}) *gojobs.CmdResult {
-	//var value interface{}
+	var value interface{}
+	// Repository
 	var result = gojobs.NewCmdResult()
-	//var token string
-	//var user string
-	//var repository string
-	//var version string
-	//var commitish string
-	//var name string
-	//var description = "changelog"
-	//var changelog = true
-	//var changelogType = "commit"
+	var token string
 
-	//value, ok := params["token"]
-	//if ok == false {
-	//result.Error = fmt.Errorf("param token missing")
-	//return result
-	//}
-	//token = cast.ToString(value)
+	var user string
+	var repository string
+	var version string
+	var commitish string
 
-	//value, ok = params["user"]
-	//if ok == false {
-	//result.Error = fmt.Errorf("param user missing")
-	//return result
-	//}
-	//user = cast.ToString(value)
+	// Release
+	var name string
+	var description = "changelog"
 
-	//value, ok = params["repository"]
-	//if ok == false {
-	//result.Error = fmt.Errorf("param repository missing")
-	//return result
-	//}
-	//repository = cast.ToString(value)
+	// Changelog
+	var changelog = true
+	var changelogType = 0
 
-	//value, ok = params["version"]
-	//if ok == false {
-	//result.Error = fmt.Errorf("param version missing")
-	//return result
-	//}
-	//version = cast.ToString(value)
+	// Assets
+	var assets = []string{}
 
-	//value, ok = params["commitish"]
-	//if ok == false {
-	//result.Error = fmt.Errorf("param commit missing")
-	//return result
-	//}
-	//commitish = cast.ToString(value)
+	// Options
+	var draft = false
+	var prerelease = false
+	//var delete = false
+	var replace = false
+	//var soft = false
 
-	//value, ok = params["name"]
-	//if ok == false {
-	//result.Error = fmt.Errorf("param name missing")
-	//return result
-	//}
-	//name = cast.ToString(value)
+	var dryRun = false
 
-	//value, ok = params["description"]
-	//if ok {
-	//description = cast.ToString(value)
-	//}
+	value, ok := params["token"]
+	if ok == false {
+		result.Error = fmt.Errorf("param token missing")
+		return result
+	}
+	token = cast.ToString(value)
 
-	//value, ok = params["changelog"]
-	//if ok {
-	//changelog = cast.ToBool(value)
-	//}
+	value, ok = params["user"]
+	if ok == false {
+		result.Error = fmt.Errorf("param user missing")
+		return result
+	}
+	user = cast.ToString(value)
 
-	//value, ok = params["changelog_type"]
-	//if ok {
-	//changelogType = cast.ToInt(value)
-	//}
+	value, ok = params["repository"]
+	if ok == false {
+		result.Error = fmt.Errorf("param repository missing")
+		return result
+	}
+	repository = cast.ToString(value)
 
-	//client := newClientByToken(token)
+	value, ok = params["version"]
+	if ok == false {
+		result.Error = fmt.Errorf("param version missing")
+		return result
+	}
+	version = cast.ToString(value)
 
-	// list all repositories for the authenticated user
-	//latestRelease, _, _ := client.Repositories.GetLatestRelease(client.ctx, user, repository)
-	//log.Infoln("latest release", latestRelease)
+	value, ok = params["commitish"]
+	if ok == false {
+		result.Error = fmt.Errorf("param commit missing")
+		return result
+	}
+	commitish = cast.ToString(value)
+
+	value, ok = params["name"]
+	if ok == false {
+		result.Error = fmt.Errorf("param name missing")
+		return result
+	}
+	name = cast.ToString(value)
+
+	value, ok = params["description"]
+	if ok {
+		description = cast.ToString(value)
+	}
+
+	value, ok = params["changelog"]
+	if ok {
+		changelog = cast.ToBool(value)
+	}
+
+	value, ok = params["changelog_type"]
+	if ok {
+		changelogType = cast.ToInt(value)
+	}
+
+	value, ok = params["assets"]
+	if ok {
+		assets = cast.ToStringSlice(value)
+	}
+
+	value, ok = params["draft"]
+	if ok {
+		draft = cast.ToBool(value)
+	}
+
+	value, ok = params["prerelease"]
+	if ok {
+		prerelease = cast.ToBool(value)
+	}
+
+	value, ok = params["replace"]
+	if ok {
+		replace = cast.ToBool(value)
+	}
+
+	value, ok = params["dry_run"]
+	if ok {
+		dryRun = cast.ToBool(value)
+	}
+
+	client := newClientByToken(token)
+	// repository
+	client.user = user
+	client.repository = repository
+	client.tag = version
+	client.commitish = commitish
+
+	// Release
+	client.name = name
+	client.description = description
+
+	// Changelog
+	client.changelog = changelog
+	client.changelogType = changelogType
+
+	// Assets
+	client.assets = assets
+
+	// Options
+	client.draft = draft
+	client.prerelease = prerelease
+	//client.delete = delete
+	client.replace = replace
+	//client.soft = soft
+
+	client.dryRun = dryRun
+
+	_, err := client.createRelease()
+	if err != nil {
+		log.Errorw("Error while creating new release", "version", client.tag, "commitish", client.commitish)
+		result.Error = err
+		return result
+	}
 
 	return result
 }
@@ -258,6 +334,9 @@ func (c *client) generateChangelog(from, to time.Time) string {
 		}
 
 		for _, commit := range commits {
+			if c.dryRun {
+				log.Infoln("changelog:", commit.Commit.GetMessage())
+			}
 			msgs += formatCommitChangelog(commit.GetSHA(), commit.Commit.GetMessage()) + "\n"
 		}
 	} else {
@@ -299,10 +378,14 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 				return nil, err
 			}
 
-			_, err = c.repositories.DeleteRelease(c.ctx, c.user, c.repository, *wantedRelease.ID)
-			if err != nil {
-				log.Errorw("Cannot delete existing release", "tag", c.tag, "err", err)
-				return nil, err
+			if c.dryRun {
+				log.Infoln("Deleting release: ", wantedRelease.GetID(), ", ", wantedRelease.GetName())
+			} else {
+				_, err = c.repositories.DeleteRelease(c.ctx, c.user, c.repository, *wantedRelease.ID)
+				if err != nil {
+					log.Errorw("Cannot delete existing release", "tag", c.tag, "err", err)
+					return nil, err
+				}
 			}
 		}
 	}
@@ -316,10 +399,14 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 
 	// Remove ref tag
 	if wantedRefTag != nil {
-		_, err := c.git.DeleteRef(c.ctx, c.user, c.repository, "refs/tags/"+c.tag)
-		if err != nil {
-			log.Errorw("Cannot delete reference tag", "tag", c.tag, "err", err)
-			return nil, err
+		if c.dryRun {
+			log.Infoln("Deleting ref:", "refs/tags/"+c.tag)
+		} else {
+			_, err := c.git.DeleteRef(c.ctx, c.user, c.repository, "refs/tags/"+c.tag)
+			if err != nil {
+				log.Errorw("Cannot delete reference tag", "tag", c.tag, "err", err)
+				return nil, err
+			}
 		}
 	}
 
@@ -333,7 +420,15 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 	}
 
 	if latestRelease != nil {
-		from = latestRelease.GetCreatedAt().Time
+		// Check if it is the only release since the beginning
+		// Set from to the release date only when:
+		// - no error while listing all releases
+		// - the number of releases >= 1
+		// - latestRelease != wantedRelease
+		releases, _, err := c.repositories.ListReleases(c.ctx, c.user, c.repository, nil)
+		if err == nil && len(releases) >= 1 && latestRelease.GetTagName() != wantedRelease.GetTagName() {
+			from = latestRelease.GetCreatedAt().Time
+		}
 	}
 
 	// Get date of commitish => date to
@@ -368,10 +463,14 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		},
 	}
 
-	_, _, err = c.git.CreateRef(c.ctx, c.user, c.repository, newRefTag)
-	if err != nil {
-		log.Errorw("Cannot create new ref tag", "ref", newRefTag, "err", err)
-		return nil, err
+	if c.dryRun {
+		log.Infof("Creating new ref: %+v\n", newRefTag)
+	} else {
+		_, _, err = c.git.CreateRef(c.ctx, c.user, c.repository, newRefTag)
+		if err != nil {
+			log.Errorw("Cannot create new ref tag", "ref", newRefTag, "err", err)
+			return nil, err
+		}
 	}
 
 	// Create new release
@@ -384,10 +483,15 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		Prerelease:      &c.prerelease,
 	}
 
-	r, _, err := c.repositories.CreateRelease(c.ctx, c.user, c.repository, newRelease)
-	if err != nil {
-		log.Errorw("Cannot create new release", "release", newRelease, "err", err)
-		return nil, err
+	var r *github.RepositoryRelease
+	if c.dryRun {
+		log.Infof("Creating release: %+v\n", newRelease)
+	} else {
+		r, _, err = c.repositories.CreateRelease(c.ctx, c.user, c.repository, newRelease)
+		if err != nil {
+			log.Errorw("Cannot create new release", "release", newRelease, "err", err)
+			return nil, err
+		}
 	}
 
 	// Upload assets
@@ -409,11 +513,15 @@ func (c *client) uploadAssets(releaseID int64) error {
 		}
 
 		// Upload asset
-		_, _, err = c.repositories.UploadReleaseAsset(c.ctx, c.user, c.repository, releaseID, nil, f)
-		if err != nil {
-			log.Errorw("Cannot upload the asset file", "asset", asset, "release", releaseID, "err", err)
-			f.Close()
-			return err
+		if c.dryRun {
+			log.Infoln("Uploading asset file:", asset)
+		} else {
+			_, _, err = c.repositories.UploadReleaseAsset(c.ctx, c.user, c.repository, releaseID, nil, f)
+			if err != nil {
+				log.Errorw("Cannot upload the asset file", "asset", asset, "release", releaseID, "err", err)
+				f.Close()
+				return err
+			}
 		}
 
 		f.Close()
@@ -433,10 +541,14 @@ func (c *client) deleteAssets(releaseID int64) error {
 
 	// Loop to remove all assets
 	for _, asset := range assets {
-		_, err = c.repositories.DeleteReleaseAsset(c.ctx, c.user, c.repository, *asset.ID)
-		if err != nil {
-			log.Errorw("Cannot delete existing release assets", "tag", c.tag, "asset", asset.GetName(), "err", err)
-			return err
+		if c.dryRun {
+			log.Infoln("Deleting release asset: ", asset.GetID, ", ", asset.GetName())
+		} else {
+			_, err = c.repositories.DeleteReleaseAsset(c.ctx, c.user, c.repository, *asset.ID)
+			if err != nil {
+				log.Errorw("Cannot delete existing release assets", "tag", c.tag, "asset", asset.GetName(), "err", err)
+				return err
+			}
 		}
 	}
 
@@ -482,7 +594,7 @@ func formatCommitChangelog(sha, msg string) string {
 	// Subject
 	if resSummary[4] != "" {
 		args = append(args, resSummary[4])
-		format += "%s,"
+		format += "%s"
 	}
 
 	// Check to capture #issue using gitlub closing keywords
@@ -495,18 +607,18 @@ func formatCommitChangelog(sha, msg string) string {
 	}
 	resFooter := re.FindAllStringSubmatch(footer, -1)
 
-	issues += "("
-	for k, v := range resFooter {
-		issues += v[1]
-		if k < len(resFooter)-1 {
-			issues += ", "
-		}
-	}
-	issues += ")"
-	args = append(args, issues)
-
 	if len(resFooter) > 0 {
-		format += " %s"
+		issues += ", ("
+		for k, v := range resFooter {
+			issues += v[1]
+			if k < len(resFooter)-1 {
+				issues += ", "
+			}
+		}
+		issues += ")"
+		args = append(args, issues)
+
+		format += "%s"
 	}
 
 	changelog := fmt.Sprintf(format, args...)
