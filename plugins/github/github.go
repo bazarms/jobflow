@@ -428,7 +428,9 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 		// - latestRelease != wantedRelease
 		releases, _, err := c.repositories.ListReleases(c.ctx, c.user, c.repository, nil)
 		if err == nil && len(releases) >= 1 && latestRelease.GetTagName() != wantedRelease.GetTagName() {
-			from = latestRelease.GetCreatedAt().Time
+			// Add 1s to the latest commit not to be included
+			// in the new release
+			from = latestRelease.GetCreatedAt().Time.Add(time.Second)
 		}
 	}
 
