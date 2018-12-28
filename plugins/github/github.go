@@ -460,7 +460,7 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 	newRefTag := &github.Reference{
 		Ref: &refTag,
 		Object: &github.GitObject{
-			SHA: &c.commitish,
+			SHA: commit.SHA,
 		},
 	}
 
