@@ -259,12 +259,14 @@ func CmdRelease(params map[string]interface{}) *gojobs.CmdResult {
 
 	client.dryRun = dryRun
 
-	_, err := client.createRelease()
+	release, err := client.createRelease()
 	if err != nil {
 		log.Errorw("Error while creating new release", "version", client.tag, "commitish", client.commitish)
 		result.Error = err
 		return result
 	}
+
+	result.Result["release"] = release
 
 	return result
 }
@@ -363,9 +365,9 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 	// Check if release that we want to create already exists or not
 	wantedRelease, _, err := c.repositories.GetReleaseByTag(c.ctx, c.user, c.repository, c.tag)
 	if err != nil {
-		log.Errorw("Cannot get latest release", "tag", c.tag, "err", err)
-		return nil, err
+		log.Warnw("Cannot get latest release", "tag", c.tag, "err", err)
 	}
+
 	log.Debugw("Get releases by tag", "tag", c.tag, "release", wantedRelease.GetName())
 	// Exist a release with same tag
 	// Check different options
@@ -415,8 +417,7 @@ func (c *client) createRelease() (*github.RepositoryRelease, error) {
 	latestRelease, _, err := c.repositories.GetLatestRelease(c.ctx, c.user, c.repository)
 	log.Debugw("Get latest release", "release", latestRelease)
 	if err != nil {
-		log.Errorw("Error while getting latest release", "err", err)
-		return nil, err
+		log.Warnw("Error while getting latest release", "err", err)
 	}
 
 	if latestRelease != nil {
