@@ -513,11 +513,13 @@ func (c *client) uploadAssets(releaseID int64) error {
 			return err
 		}
 
+		splits := strings.Split(asset, "/")
+		assetName := splits[len(splits)-1]
 		// Upload asset
 		if c.dryRun {
 			log.Infoln("Uploading asset file:", asset)
 		} else {
-			_, _, err = c.repositories.UploadReleaseAsset(c.ctx, c.user, c.repository, releaseID, nil, f)
+			_, _, err = c.repositories.UploadReleaseAsset(c.ctx, c.user, c.repository, releaseID, &github.UploadOptions{Name: assetName}, f)
 			if err != nil {
 				log.Errorw("Cannot upload the asset file", "asset", asset, "release", releaseID, "err", err)
 				f.Close()
