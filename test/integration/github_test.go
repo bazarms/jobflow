@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/oauth2"
 
-	mygithub "github.com/uthng/gojobs/plugins/github"
+	mygithub "github.com/uthng/jobflow/plugins/github"
 	log "github.com/uthng/golog"
 )
 

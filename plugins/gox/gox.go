@@ -7,18 +7,18 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
-	"github.com/uthng/gojobs"
+	"github.com/uthng/jobflow"
 	log "github.com/uthng/golog"
 )
 
-var module = gojobs.Module{
+var module = jobflow.Module{
 	Name:        "gox",
 	Version:     "0.1",
 	Description: "Use gox to build multiple platforms",
 }
 
 // List of available commands for this module
-var commands = []gojobs.Cmd{
+var commands = []jobflow.Cmd{
 	{
 		Name:   "build",
 		Func:   CmdBuild,
@@ -30,14 +30,14 @@ var commands = []gojobs.Cmd{
 // to command registry
 func init() {
 	for _, cmd := range commands {
-		gojobs.CmdRegister(cmd)
+		jobflow.CmdRegister(cmd)
 	}
 }
 
 // CmdBuild compiles multiple platforms.
 // It takes a map of params
-func CmdBuild(params map[string]interface{}) *gojobs.CmdResult {
-	var res = gojobs.NewCmdResult()
+func CmdBuild(params map[string]interface{}) *jobflow.CmdResult {
+	var res = jobflow.NewCmdResult()
 	var args []string
 
 	args = append(args, "gox")

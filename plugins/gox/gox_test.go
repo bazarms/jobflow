@@ -6,22 +6,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/uthng/gojobs"
-	"github.com/uthng/gojobs/plugins/gox"
+	"github.com/uthng/jobflow"
+	"github.com/uthng/jobflow/plugins/gox"
 )
 
 func TestCmdBuild(t *testing.T) {
 	testCases := []struct {
 		name   string
 		params map[string]interface{}
-		result *gojobs.CmdResult
+		result *jobflow.CmdResult
 	}{
 		{
 			"OSArchMissing",
 			map[string]interface{}{
 				"output": "output1",
 			},
-			&gojobs.CmdResult{
+			&jobflow.CmdResult{
 				Error:  fmt.Errorf("param osarch missing"),
 				Result: map[string]interface{}{},
 			},
@@ -31,7 +31,7 @@ func TestCmdBuild(t *testing.T) {
 			map[string]interface{}{
 				"osarch": "osarch1",
 			},
-			&gojobs.CmdResult{
+			&jobflow.CmdResult{
 				Error:  fmt.Errorf("param output missing"),
 				Result: map[string]interface{}{},
 			},

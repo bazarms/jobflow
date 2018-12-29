@@ -1,25 +1,25 @@
-package gojobs_test
+package jobflow_test
 
 import (
 	//"fmt"
 	"testing"
 
-	"github.com/uthng/gojobs"
-	_ "github.com/uthng/gojobs/plugins/all"
+	"github.com/uthng/jobflow"
+	_ "github.com/uthng/jobflow/plugins/all"
 	log "github.com/uthng/golog"
 )
 
 func TestLoadModules(t *testing.T) {
 	log.SetVerbosity(log.DEBUG)
-	//gojobs.NewCmdRegistry()
-	//gojobs.NewModuleRegistry()
+	//jobflow.NewCmdRegistry()
+	//jobflow.NewModuleRegistry()
 
-	//gojobs.LoadModules("../app/modules")
+	//jobflow.LoadModules("../app/modules")
 
-	//registry := gojobs.GetModuleRegistry()
+	//registry := jobflow.GetModuleRegistry()
 	//fmt.Printf("Registry %#v\n", registry)
 
-	cmd, ok := gojobs.GetCmdByName("shell.exec")
+	cmd, ok := jobflow.GetCmdByName("shell.exec")
 	if ok {
 		result := cmd.Func(map[string]interface{}{"cmd": "ls -la"})
 		log.Infoln(result)

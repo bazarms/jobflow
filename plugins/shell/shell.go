@@ -6,17 +6,17 @@ import (
 	"os/exec"
 	//"strings"
 
-	"github.com/uthng/gojobs"
+	"github.com/uthng/jobflow"
 )
 
-var module = gojobs.Module{
+var module = jobflow.Module{
 	Name:        "shell",
 	Version:     "0.1",
 	Description: "Everything concern shell",
 }
 
 // List of available commands for this module
-var commands = []gojobs.Cmd{
+var commands = []jobflow.Cmd{
 	{
 		Name:   "exec",
 		Func:   ExecCmd,
@@ -28,15 +28,15 @@ var commands = []gojobs.Cmd{
 // to command registry
 func init() {
 	for _, cmd := range commands {
-		gojobs.CmdRegister(cmd)
+		jobflow.CmdRegister(cmd)
 	}
 }
 
 // ExecCmd executes a command shell (bash).
 // It takes a map of params
-func ExecCmd(params map[string]interface{}) *gojobs.CmdResult {
+func ExecCmd(params map[string]interface{}) *jobflow.CmdResult {
 	//var command []string
-	var res = gojobs.NewCmdResult()
+	var res = jobflow.NewCmdResult()
 
 	value, ok := params["cmd"]
 	if ok == false {
