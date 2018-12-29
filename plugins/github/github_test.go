@@ -380,6 +380,11 @@ func TestCreateRelease(t *testing.T) {
 							date:    time.Date(2018, time.November, 10, 10, 0, 0, 0, time.UTC),
 						},
 						{
+							sha:     "111b53e7abf3b56b8e984c55ce9bebef8ee016eb",
+							message: "fix: subject 21\n\nBody21\n\nFixed #21",
+							date:    time.Date(2018, time.November, 11, 10, 0, 0, 0, time.UTC),
+						},
+						{
 							sha:     "197b53e7abf3b56b8e984c55ce9bebef8ee016eb",
 							message: "Subject 3\n\nBody3\n\nClosed #3, fixed ex_repo/ex_user#234, fixes #200",
 							date:    time.Date(2018, time.November, 15, 10, 0, 0, 0, time.UTC),
@@ -410,7 +415,7 @@ func TestCreateRelease(t *testing.T) {
 				TagName:         getPtrString("0.2.1"),
 				TargetCommitish: getPtrString("197b53e7abf3b56b8e984c55ce9bebef8ee016eb"),
 				Name:            getPtrString("0.2.1"),
-				Body:            getPtrString("[989b53e] subject 2 (#1234), (#2, #120)\n[197b53e] Subject 3, (#3, ex_repo/ex_user#234, #200)\n"),
+				Body:            getPtrString("[111b53e] subject 21, (#21)\n[197b53e] Subject 3, (#3, ex_repo/ex_user#234, #200)\n"),
 				Draft:           getPtrBool(false),
 				Prerelease:      getPtrBool(false),
 			},
