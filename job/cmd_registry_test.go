@@ -1,25 +1,25 @@
-package jobflow_test
+package job_test
 
 import (
 	//"fmt"
 	"testing"
 
-	"github.com/uthng/jobflow"
+	"github.com/uthng/jobflow/job"
 	log "github.com/uthng/golog"
 )
 
-var module = jobflow.Module{
+var module = job.Module{
 	Name:        "ModTest",
 	Version:     "0.1",
 	Description: "ModTest",
 }
 
-var fn = func(map[string]interface{}) *jobflow.CmdResult {
+var fn = func(map[string]interface{}) *job.CmdResult {
 	log.Debugln("CmdFunc test")
-	return &jobflow.CmdResult{Error: nil, Result: nil}
+	return &job.CmdResult{Error: nil, Result: nil}
 }
 
-var cmds = []jobflow.Cmd{
+var cmds = []job.Cmd{
 	{
 		Name:   "cmd1",
 		Func:   fn,
@@ -41,13 +41,13 @@ func TestCmdRegister(t *testing.T) {
 
 	for _, cmd := range cmds {
 		log.Debugln(cmd)
-		jobflow.CmdRegister(cmd)
+		job.CmdRegister(cmd)
 	}
 
-	registry := jobflow.GetCmdRegistry()
+	registry := job.GetCmdRegistry()
 	log.Debugf("Registry %#v\n", registry)
 
-	nb := jobflow.GetNbOfCmds()
+	nb := job.GetNbOfCmds()
 	log.Debugf("nb of commands %v\n", nb)
 
 	if nb != 3 {
@@ -57,12 +57,12 @@ func TestCmdRegister(t *testing.T) {
 
 func TestCmdUnregister(t *testing.T) {
 
-	jobflow.CmdUnregister(cmds[1])
+	job.CmdUnregister(cmds[1])
 
-	registry := jobflow.GetCmdRegistry()
+	registry := job.GetCmdRegistry()
 	log.Debugf("Registry %#v\n", registry)
 
-	nb := jobflow.GetNbOfCmds()
+	nb := job.GetNbOfCmds()
 	log.Debugf("nb of commands %v\n", nb)
 
 	if nb != 2 {
@@ -82,7 +82,7 @@ func TestCmdUnregister(t *testing.T) {
 }
 
 func TestGetCmdByName(t *testing.T) {
-	cmd, ok := jobflow.GetCmdByName("ModTest.cmd3")
+	cmd, ok := job.GetCmdByName("ModTest.cmd3")
 	if ok {
 		cmd.Func(nil)
 	} else {

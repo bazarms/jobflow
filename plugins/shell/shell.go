@@ -6,17 +6,17 @@ import (
 	"os/exec"
 	//"strings"
 
-	"github.com/uthng/jobflow"
+	"github.com/uthng/jobflow/job"
 )
 
-var module = jobflow.Module{
+var module = job.Module{
 	Name:        "shell",
 	Version:     "0.1",
 	Description: "Everything concern shell",
 }
 
 // List of available commands for this module
-var commands = []jobflow.Cmd{
+var commands = []job.Cmd{
 	{
 		Name:   "exec",
 		Func:   ExecCmd,
@@ -28,15 +28,15 @@ var commands = []jobflow.Cmd{
 // to command registry
 func init() {
 	for _, cmd := range commands {
-		jobflow.CmdRegister(cmd)
+		job.CmdRegister(cmd)
 	}
 }
 
 // ExecCmd executes a command shell (bash).
 // It takes a map of params
-func ExecCmd(params map[string]interface{}) *jobflow.CmdResult {
+func ExecCmd(params map[string]interface{}) *job.CmdResult {
 	//var command []string
-	var res = jobflow.NewCmdResult()
+	var res = job.NewCmdResult()
 
 	value, ok := params["cmd"]
 	if ok == false {
