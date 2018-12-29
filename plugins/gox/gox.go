@@ -7,18 +7,18 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
-	"github.com/uthng/jobflow"
+	"github.com/uthng/jobflow/job"
 	log "github.com/uthng/golog"
 )
 
-var module = jobflow.Module{
+var module = job.Module{
 	Name:        "gox",
 	Version:     "0.1",
 	Description: "Use gox to build multiple platforms",
 }
 
 // List of available commands for this module
-var commands = []jobflow.Cmd{
+var commands = []job.Cmd{
 	{
 		Name:   "build",
 		Func:   CmdBuild,
@@ -30,14 +30,14 @@ var commands = []jobflow.Cmd{
 // to command registry
 func init() {
 	for _, cmd := range commands {
-		jobflow.CmdRegister(cmd)
+		job.CmdRegister(cmd)
 	}
 }
 
 // CmdBuild compiles multiple platforms.
 // It takes a map of params
-func CmdBuild(params map[string]interface{}) *jobflow.CmdResult {
-	var res = jobflow.NewCmdResult()
+func CmdBuild(params map[string]interface{}) *job.CmdResult {
+	var res = job.NewCmdResult()
 	var args []string
 
 	args = append(args, "gox")

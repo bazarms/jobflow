@@ -1,25 +1,25 @@
-package jobflow_test
+package job_test
 
 import (
 	//"fmt"
 	"testing"
 
-	"github.com/uthng/jobflow"
+	"github.com/uthng/jobflow/job"
 	_ "github.com/uthng/jobflow/plugins/all"
 	log "github.com/uthng/golog"
 )
 
 func TestLoadModules(t *testing.T) {
 	log.SetVerbosity(log.DEBUG)
-	//jobflow.NewCmdRegistry()
-	//jobflow.NewModuleRegistry()
+	//job.NewCmdRegistry()
+	//job.NewModuleRegistry()
 
-	//jobflow.LoadModules("../app/modules")
+	//job.LoadModules("../app/modules")
 
-	//registry := jobflow.GetModuleRegistry()
+	//registry := job.GetModuleRegistry()
 	//fmt.Printf("Registry %#v\n", registry)
 
-	cmd, ok := jobflow.GetCmdByName("shell.exec")
+	cmd, ok := job.GetCmdByName("shell.exec")
 	if ok {
 		result := cmd.Func(map[string]interface{}{"cmd": "ls -la"})
 		log.Infoln(result)

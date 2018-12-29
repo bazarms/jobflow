@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cast"
 	"golang.org/x/oauth2"
 
-	"github.com/uthng/jobflow"
+	"github.com/uthng/jobflow/job"
 	log "github.com/uthng/golog"
 )
 
@@ -77,14 +77,14 @@ const (
 	ISSUE = 1
 )
 
-var module = jobflow.Module{
+var module = job.Module{
 	Name:        "github",
 	Version:     "0.1",
 	Description: "Github operations: release, changelog etc.",
 }
 
 // List of available commands for this module
-var commands = []jobflow.Cmd{
+var commands = []job.Cmd{
 	{
 		Name:   "release",
 		Func:   CmdRelease,
@@ -96,7 +96,7 @@ var commands = []jobflow.Cmd{
 // to command registry
 func init() {
 	for _, cmd := range commands {
-		jobflow.CmdRegister(cmd)
+		job.CmdRegister(cmd)
 	}
 }
 
@@ -119,10 +119,10 @@ func init() {
 // - replace: replace artifacts if it is already uploaded
 // - soft: true/false. Stop uploading if the same tag already exists
 // - dry_run: true/false. Only display messages, not action performed. Default: false
-func CmdRelease(params map[string]interface{}) *jobflow.CmdResult {
+func CmdRelease(params map[string]interface{}) *job.CmdResult {
 	var value interface{}
 	// Repository
-	var result = jobflow.NewCmdResult()
+	var result = job.NewCmdResult()
 	var token string
 
 	var user string
