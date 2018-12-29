@@ -1,4 +1,4 @@
-package gojobs
+package jobflow
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
-	//"github.com/uthng/gojobs"
+	//"github.com/uthng/jobflow"
 	//log "github.com/uthng/golog"
 )
 

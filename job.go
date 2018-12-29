@@ -1,4 +1,4 @@
-package gojobs
+package jobflow
 
 import (
 	"bytes"
