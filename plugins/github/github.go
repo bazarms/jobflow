@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cast"
 	"golang.org/x/oauth2"
 
-	"github.com/uthng/jobflow/job"
 	log "github.com/uthng/golog"
+	"github.com/uthng/jobflow/job"
 )
 
 type repositoriesService interface {
@@ -266,7 +266,7 @@ func CmdRelease(params map[string]interface{}) *job.CmdResult {
 		return result
 	}
 
-	result.Result["release"] = release
+	result.Result["result"] = release
 
 	return result
 }
