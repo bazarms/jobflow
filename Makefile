@@ -15,10 +15,10 @@ SRCS = $(shell git ls-files '*.go' | grep -v '^vendor/')
 # Targets
 TARGET = jobflow
 
-all: clean $(TARGET)
+all: clean build
 
 # Build targets multiple platforms
-build: deps
+build: clean test-unit deps
 	gox -osarch="linux/amd64" \
 	-output="bin/{{.OS}}_{{.Arch}}/"$(TARGET) .
 
