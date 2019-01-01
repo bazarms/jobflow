@@ -4,8 +4,8 @@ import (
 	//"fmt"
 	"testing"
 
-	"github.com/uthng/jobflow/job"
 	log "github.com/uthng/golog"
+	"github.com/uthng/jobflow/job"
 )
 
 var module = job.Module{
