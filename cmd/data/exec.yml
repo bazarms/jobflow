@@ -8,12 +8,12 @@ job1:
       shell:
         cmd: exec
         params:
-          cmd: "echo {{ .context.var1 }}"
+          cmd: "echo {{ .context.variables.var1 }}"
     - name: shell12
       shell:
         cmd: exec
         params:
-          cmd: "echo {{ .context.var2 }}"
+          cmd: "echo {{ .context.variables.var2 }}"
 
 job2:
   tasks:
@@ -21,4 +21,4 @@ job2:
       shell:
         cmd: exec
         params:
-          cmd: "echo {{ .context.var1 }}/{{ .context.var2 }}"
+          cmd: "echo {{ .context.variables.var1 }}/{{ .context.variables.var2 }}"

@@ -23,6 +23,8 @@ import (
 	log "github.com/uthng/golog"
 
 	"github.com/uthng/jobflow/config"
+	"github.com/uthng/jobflow/job"
+
 	// import all jobflow builtin modules
 	_ "github.com/uthng/jobflow/plugins/all"
 )
@@ -56,7 +58,7 @@ func init() {
 	// execCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func exec(args []string) {
+func exec(args []string) *job.Flow {
 	// Check if a flow file is specified
 	if len(args) < 1 {
 		log.Fatalln("No jobflow file is specified")
@@ -73,18 +75,9 @@ func exec(args []string) {
 	//Execute all jobs
 	if jobexec == "all" {
 		log.Debugw("List of jobs", "jobs", jf.Jobs)
-		// Loop jobs and exec job by job.
-		for _, j := range jf.Jobs {
-			log.Infow("Executing job:", "job", j.Name)
-			// Loop tasks and exec task by task
-			j.Start = j.Tasks[0]
 
-			res := j.Run("")
-			if res != nil {
-				log.Fatalw("Job error", "job", j.Name, "err", res.Error)
-			}
-
-			log.Infow("Job result", "job", j.Name, "res", j.ValueRegistry.ValueList)
-		}
+		jf.RunAllJobs()
 	}
+
+	return jf
 }

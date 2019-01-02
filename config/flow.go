@@ -11,18 +11,11 @@ import (
 	"github.com/uthng/jobflow/job"
 )
 
-// JobFlow represents the yaml file describing variables
-// and all jobs
-type JobFlow struct {
-	Variables map[string]interface{}
-	Jobs      []*job.Job
-}
-
 // ReadFlowFile unmarshals the configuration file into Config struct
-func ReadFlowFile(content []byte) *JobFlow {
+func ReadFlowFile(content []byte) *job.Flow {
 	config := make(map[string]interface{})
 
-	jf := &JobFlow{}
+	jf := job.NewFlow()
 
 	// Get config under map[string]interface{}
 	//content, err := ioutil.ReadFile("testdata/hello")
@@ -44,8 +37,9 @@ func ReadFlowFile(content []byte) *JobFlow {
 			// Parse tasks
 			readJob(j, cast.ToStringMap(v))
 
-			// Add variables to job context
-			j.ValueRegistry.AddValue("context", jf.Variables)
+			for _, t := range j.Tasks {
+				log.Infoln(t)
+			}
 
 			// Add job to job list
 			jf.Jobs = append(jf.Jobs, j)
