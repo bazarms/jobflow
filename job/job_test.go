@@ -337,21 +337,21 @@ var4:
 			return &CmdResult{Error: nil, Result: m}
 		},
 		Params: map[string]interface{}{
-			"param1": "$VAR1 {{ .context.var1 }}",
-			"param2": []string{"$VAR21", "{{ index .context.var2 1 }}", "3"},
-			"param3": "$VAR412 {{ .context.var4.var41.var412 }}",
+			"param1": "$VAR1 {{ .context.variables.var1 }}",
+			"param2": []string{"$VAR21", "{{ index .context.variables.var2 1 }}", "3"},
+			"param3": "$VAR412 {{ .context.variables.var4.var41.var412 }}",
 		},
 	}
 
 	w := NewJob("Job 1")
-	w.ValueRegistry.AddValue("context", data)
+	w.Context["variables"] = data
 	w.Start = &task1
 
 	res := w.Run("")
 	assert.Nil(t, res)
 
 	// Check result of task1
-	result, ok := w.ValueRegistry.GetValueByKey("Task 1")
+	result, ok := w.Result["Task 1"]
 	assert.Equal(t, true, ok)
 	assert.Equal(t, result, output)
 }

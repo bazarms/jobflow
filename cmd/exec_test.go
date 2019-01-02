@@ -12,10 +12,15 @@ func TestExec(t *testing.T) {
 	testCases := []struct {
 		name     string
 		yamlFile string
+		output   map[string]interface{}
 	}{
 		{
 			"ShellExec",
 			"./data/exec.yml",
+			map[string]interface{}{
+				"shell11": map[string]interface{}{},
+				"shell12": map[string]interface{}{},
+			},
 		},
 	}
 

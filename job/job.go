@@ -22,8 +22,9 @@ type Job struct {
 	Name  string
 	Start *Task
 
-	Tasks         []*Task
-	ValueRegistry *ValueRegistry
+	Tasks   []*Task
+	Context map[string]interface{}
+	Result  map[string]interface{}
 }
 
 // Task describes attributes of a task
@@ -41,10 +42,10 @@ type Task struct {
 // NewJob instancies a new Job
 func NewJob(name string) *Job {
 	job := &Job{
-		Name: name,
+		Name:    name,
+		Context: make(map[string]interface{}),
+		Result:  make(map[string]interface{}),
 	}
-
-	job.ValueRegistry = NewValueRegistry()
 
 	return job
 }
@@ -58,7 +59,8 @@ func (job *Job) Run(tasks string) error {
 	var res bool
 	var err error
 
-	log.Infoln("JOB RUN STARTED")
+	log.Infow("JOB RUN STARTED", "job", job.Name)
+	log.Debugw("Job context", "context", job.Context)
 
 	// Check the name of all tasks indicated in taskflow
 	res = job.CheckTasks()
@@ -75,13 +77,12 @@ func (job *Job) Run(tasks string) error {
 	}
 
 	if err != nil {
-		log.Errorln("JOB RUN FAILED")
+		log.Errorw("JOB RUN FAILED", "job", job.Name)
 		return err
 	}
 
-	log.Infoln("JOB RUN COMPLETED")
-
-	log.Debugw("Value Registry", "registry", job.ValueRegistry)
+	log.Debugw("Job result", "result", job.Result)
+	log.Infow("JOB RUN COMPLETED", "job", job.Name)
 
 	return nil
 }
@@ -116,7 +117,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 
 		// Before execute command func, we must render each param template
 		// if it exists with  Value registry
-		err = job.RenderTaskTemplate(s, job.ValueRegistry.ValueList)
+		err = job.RenderTaskTemplate(s)
 		if err != nil {
 			log.Errorw("Template rendering error", "task", s.Name, "err", err)
 			return err
@@ -125,14 +126,14 @@ func (job *Job) RunTaskByTask(tasks string) error {
 		s.Result = s.Func(s.Params)
 
 		if s.Result.Error != nil {
-			log.Errorln("Execution error", "task", s.Name, "err", s.Result.Error)
-			log.Errorw("Result", "task", s.Name, "status", "KO")
+			log.Errorw("Task result", "task", s.Name, "err", s.Result.Error)
+			job.Result[s.Name] = s.Result.Error
 			return s.Result.Error
 		}
 
 		// In all cases, add task result to value registry
-		job.ValueRegistry.AddValue(s.Name, s.Result.Result)
-		log.Infow("Result", "task", s.Name, "status", "OK")
+		job.Result[s.Name] = s.Result.Result
+		log.Infow("Result", "task", s.Name, "result", s.Result.Result)
 	}
 
 	return nil
@@ -151,7 +152,7 @@ func (job *Job) RunAllTasks(task *Task) error {
 
 	// Before execute command func, we must render each param template
 	// if it exists with  Value registry
-	err := job.RenderTaskTemplate(task, job.ValueRegistry.ValueList)
+	err := job.RenderTaskTemplate(task)
 	if err != nil {
 		log.Errorw("Error templating", "task", task.Name, "err", err)
 		return err
@@ -160,8 +161,9 @@ func (job *Job) RunAllTasks(task *Task) error {
 	task.Result = task.Func(task.Params)
 
 	if task.Result.Error != nil {
-		log.Errorw("Execution error", "task", task.Name, "err", task.Result.Error)
-		log.Errorw("Result", "task", task.Name, "status", "KO")
+		log.Errorw("Result", "task", task.Name, "err", task.Result.Error)
+		job.Result[task.Name] = task.Result.Error
+
 		// Go the task of failure if specified
 		if len(task.OnFailure) > 0 {
 			taskFailure, _ := job.GetTaskByName(task.OnFailure)
@@ -169,9 +171,9 @@ func (job *Job) RunAllTasks(task *Task) error {
 		}
 	} else {
 		// In all cases, add task result to value registry
-		job.ValueRegistry.AddValue(task.Name, task.Result.Result)
+		log.Infow("Result", "task", task.Name, "result", task.Result.Result)
+		job.Result[task.Name] = task.Result.Result
 
-		log.Infow("Result", "task", task.Name, "status", "OK")
 		// Go the task of Success if specified
 		if len(task.OnSuccess) > 0 {
 			taskSuccess, _ := job.GetTaskByName(task.OnSuccess)
@@ -235,9 +237,14 @@ func (job *Job) CheckTasks() bool {
 }
 
 // RenderTaskTemplate renders go template in each param with
-// the values in ValueRegistry
-func (job *Job) RenderTaskTemplate(task *Task, data map[string]interface{}) error {
+// the values in Job Context & Result
+func (job *Job) RenderTaskTemplate(task *Task) error {
 	var tpl bytes.Buffer
+
+	// Combine Job Context & Result into one map to render template
+	data := make(map[string]interface{})
+	data["context"] = job.Context
+	data["result"] = job.Result
 
 	// Expand env vars for context
 	d := expandEnvContext(data)

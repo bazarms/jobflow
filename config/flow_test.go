@@ -44,7 +44,7 @@ release:
 	//cmdFuncShellExec, _ := job.GetCmdByName("shell.exec")
 	//cmdFuncGithubRelease, _ := job.GetCmdByName("github.release")
 
-	flowOK := &JobFlow{
+	flowOK := &job.Flow{
 		Variables: map[string]interface{}{
 			"var1": "$VAR1",
 			"var2": "${VAR2}",
@@ -68,14 +68,6 @@ release:
 						},
 					},
 				},
-				ValueRegistry: &job.ValueRegistry{
-					ValueList: map[string]interface{}{
-						"context": map[string]interface{}{
-							"var1": "$VAR1",
-							"var2": "${VAR2}",
-						},
-					},
-				},
 			},
 			{
 				Name: "release",
@@ -85,14 +77,6 @@ release:
 						//Func: cmdFuncGithubRelease.Func,
 						Params: map[string]interface{}{
 							"target": "hello",
-						},
-					},
-				},
-				ValueRegistry: &job.ValueRegistry{
-					ValueList: map[string]interface{}{
-						"context": map[string]interface{}{
-							"var1": "$VAR1",
-							"var2": "${VAR2}",
 						},
 					},
 				},
@@ -114,6 +98,5 @@ release:
 			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].OnFailure, task.OnFailure)
 			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].Result, task.Result)
 		}
-		assert.Equal(t, flowOK.Jobs[index].ValueRegistry, job.ValueRegistry)
 	}
 }
