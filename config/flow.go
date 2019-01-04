@@ -37,10 +37,6 @@ func ReadFlowFile(content []byte) *job.Flow {
 			// Parse tasks
 			readJob(j, cast.ToStringMap(v))
 
-			for _, t := range j.Tasks {
-				log.Infoln(t)
-			}
-
 			// Add job to job list
 			jf.Jobs = append(jf.Jobs, j)
 		}
@@ -71,13 +67,29 @@ func readJob(j *job.Job, data map[string]interface{}) {
 		for k, v := range tm {
 			vm := cast.ToStringMap(v)
 
-			module := k
-			cmd := cast.ToString(vm["cmd"])
-			task.Params = cast.ToStringMap(vm["params"])
+			plugin := k
 
-			c, ok := job.GetCmdByName(module + "." + cmd)
+			// Check plugin's mandatory parameters
+			cmd := cast.ToString(vm["cmd"])
+			if cmd == "" {
+				log.Fatalw("No command is specified", "plugin", plugin)
+			}
+
+			task.Params = cast.ToStringMap(vm["params"])
+			if len(task.Params) == 0 {
+				log.Fatalw("No parameter is specified", "plugin", plugin)
+			}
+
+			// If OnSuccess of the previous task is not specified
+			// so set it to the current task. Like that, all tasks
+			// can be executed in case of onsuccess not specified
+			if i > 0 && j.Tasks[i-1].OnSuccess == "" {
+				j.Tasks[i-1].OnSuccess = task.Name
+			}
+
+			c, ok := job.GetCmdByName(plugin + "." + cmd)
 			if !ok {
-				log.Fatalw("No command found", "cmd", cmd, "module", module)
+				log.Fatalw("No command found", "cmd", cmd, "plugin", plugin)
 			}
 
 			task.Func = c.Func

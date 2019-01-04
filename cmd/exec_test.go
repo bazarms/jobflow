@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	//"fmt"
 	"os"
 	"testing"
 	//    "reflect"
-	//"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/assert"
 	//log "github.com/uthng/golog"
 )
 
@@ -12,14 +14,31 @@ func TestExec(t *testing.T) {
 	testCases := []struct {
 		name     string
 		yamlFile string
-		output   map[string]interface{}
+		output   []map[string]interface{}
 	}{
 		{
 			"ShellExec",
 			"./data/exec.yml",
-			map[string]interface{}{
-				"shell11": map[string]interface{}{},
-				"shell12": map[string]interface{}{},
+			[]map[string]interface{}{
+				map[string]interface{}{
+					"shell11": map[string]interface{}{
+						"result": "var1\n",
+					},
+					"shell12": map[string]interface{}{
+						"result": "var2\n",
+					},
+					"shell13": map[string]interface{}{
+						"result": "var1+var2\n",
+					},
+				},
+				map[string]interface{}{
+					"shell21": map[string]interface{}{
+						"result": "var1/var2\n",
+					},
+					"shell22": map[string]interface{}{
+						"result": "var1*var2\n",
+					},
+				},
 			},
 		},
 	}
@@ -34,7 +53,10 @@ func TestExec(t *testing.T) {
 			os.Setenv("VAR2", "var2")
 			args = append(args, tc.yamlFile)
 
-			exec(args)
+			jf := exec(args)
+			for i, j := range jf.Jobs {
+				assert.Equal(t, tc.output[i], j.Result)
+			}
 		})
 	}
 
