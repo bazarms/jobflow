@@ -14,11 +14,21 @@ job1:
         cmd: exec
         params:
           cmd: "echo {{ .context.variables.var2 }}"
+    - name: shell13
+      shell:
+        cmd: exec
+        params:
+          cmd: "echo {{ .context.variables.var1 }}+{{ .context.variables.var2 }}"
 
 job2:
   tasks:
-    - name: shell2
+    - name: shell21
       shell:
         cmd: exec
         params:
           cmd: "echo {{ .context.variables.var1 }}/{{ .context.variables.var2 }}"
+    - name: shell22
+      shell:
+        cmd: exec
+        params:
+          cmd: "echo {{ .context.variables.var1 }}*{{ .context.variables.var2 }}"
