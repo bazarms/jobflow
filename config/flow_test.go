@@ -33,6 +33,7 @@ build:
           cmd: echo 20
 
 release:
+  hosts: swmmng
   tasks:
     - name: "github release"
       github:
@@ -51,7 +52,8 @@ release:
 		},
 		Jobs: []*job.Job{
 			{
-				Name: "build",
+				Name:  "build",
+				Hosts: "localhost",
 				Tasks: []*job.Task{
 					{
 						Name: "task-1",
@@ -59,6 +61,7 @@ release:
 						Params: map[string]interface{}{
 							"cmd": "echo 10",
 						},
+						OnSuccess: "task-2",
 					},
 					{
 						Name: "task-2",
@@ -70,7 +73,8 @@ release:
 				},
 			},
 			{
-				Name: "release",
+				Name:  "release",
+				Hosts: "swmmng",
 				Tasks: []*job.Task{
 					{
 						Name: "github release",
@@ -90,6 +94,7 @@ release:
 
 	for index, job := range jf.Jobs {
 		assert.Equal(t, flowOK.Jobs[index].Name, job.Name)
+		assert.Equal(t, flowOK.Jobs[index].Hosts, job.Hosts)
 		for idx, task := range job.Tasks {
 			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].Name, task.Name)
 

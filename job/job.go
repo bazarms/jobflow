@@ -20,6 +20,7 @@ import (
 // Job describes structure of a job
 type Job struct {
 	Name  string
+	Hosts string
 	Start *Task
 
 	Tasks   []*Task
@@ -59,7 +60,7 @@ func (job *Job) Run(tasks string) error {
 	var res bool
 	var err error
 
-	log.Infow("JOB RUN STARTED", "job", job.Name)
+	log.Infow("JOB RUN STARTED", "job", job.Name, "hosts", job.Hosts)
 	log.Debugw("Job context", "context", job.Context)
 
 	// Check the name of all tasks indicated in taskflow
@@ -82,7 +83,7 @@ func (job *Job) Run(tasks string) error {
 	}
 
 	log.Debugw("Job result", "result", job.Result)
-	log.Infow("JOB RUN COMPLETED", "job", job.Name)
+	log.Infow("JOB RUN COMPLETED", "job", job.Name, "hosts", job.Hosts)
 
 	return nil
 }
