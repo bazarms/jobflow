@@ -49,8 +49,19 @@ func ReadFlowFile(content []byte) *job.Flow {
 
 // readJob parses & fills up Job structure
 func readJob(j *job.Job, data map[string]interface{}) {
+	hosts := cast.ToString(data["hosts"])
+	if hosts == "" {
+		j.Hosts = "localhost"
+	} else {
+		j.Hosts = hosts
+	}
+
 	//Read tasks
 	tasks := cast.ToSlice(data["tasks"])
+	if len(tasks) <= 0 {
+		log.Warnw("No tasks specified", "job", j.Name)
+	}
+
 	for i, t := range tasks {
 		task := &job.Task{}
 
@@ -70,11 +81,13 @@ func readJob(j *job.Job, data map[string]interface{}) {
 			plugin := k
 
 			// Check plugin's mandatory parameters
+			// Check cmd parameter
 			cmd := cast.ToString(vm["cmd"])
 			if cmd == "" {
 				log.Fatalw("No command is specified", "plugin", plugin)
 			}
 
+			// Check params parameter
 			task.Params = cast.ToStringMap(vm["params"])
 			if len(task.Params) == 0 {
 				log.Fatalw("No parameter is specified", "plugin", plugin)
