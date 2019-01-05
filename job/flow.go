@@ -11,6 +11,7 @@ import (
 type Flow struct {
 	Variables map[string]interface{}
 	Jobs      []*Job
+	Inventory *Inventory
 }
 
 ////////// DEFINITION OF ALL FUNCTIONS ///////////////////////////

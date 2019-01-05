@@ -30,7 +30,8 @@ import (
 )
 
 var (
-	jobexec string
+	jobexec   string
+	inventory string
 )
 
 // execCmd represents the exec command
@@ -52,6 +53,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	execCmd.PersistentFlags().StringVar(&jobexec, "job", "all", "Job's name. Default: all")
+	execCmd.PersistentFlags().StringVar(&inventory, "inventory", "", "Inventory file")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
@@ -71,6 +73,15 @@ func exec(args []string) *job.Flow {
 	}
 
 	jf := config.ReadFlowFile(content)
+
+	if inventory != "" {
+		content, err := ioutil.ReadFile(inventory)
+		if err != nil {
+			log.Fatalw("Cannot read inventory file", "file", inventory, "err", err)
+		}
+
+		jf.Inventory = config.ReadInventoryFile(content)
+	}
 
 	//Execute all jobs
 	if jobexec == "all" {
