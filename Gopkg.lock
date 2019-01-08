@@ -10,20 +10,20 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:b0baf96eb3f1387dfd368f38f1d9c91adb947239530014d1006540ccee7579b2"
+  digest = "1:e6cdc43eba27f9d29f0d6497414597e45ea812c2e51ffd42a1f8f1bb0c1a9d98"
   name = "github.com/Masterminds/sprig"
   packages = ["."]
   pruneopts = "UT"
-  revision = "15f9564e7e9cf0da02a48e0d25f12a7b83559aa6"
-  version = "v2.16.0"
+  revision = "544a9b1d90f323f6509491b389714fbbd126bee3"
+  version = "v2.17.1"
 
 [[projects]]
-  digest = "1:8f5416c7f59da8600725ae1ff00a99af1da8b04c211ae6f3c8f8bcab0164f650"
+  digest = "1:3b10c6fd33854dc41de2cf78b7bae105da94c2789b6fa5b9ac9e593ea43484ac"
   name = "github.com/aokoli/goutils"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3391d3790d23d03408670993e957e8f408993c34"
-  version = "v1.0.1"
+  revision = "41ac8693c5c10a92ea1ff5ac3a7f95646f6123b0"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -58,12 +58,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:34bd52916ea0a9e4d95d34dab5bc4f125a7ee7b1e11b1a531d2ea43f41b4f4e8"
+  digest = "1:63ede27834b468648817fb80cfb95d40abfc61341f89cb7a0d6779b6aa955425"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "UT"
-  revision = "35781f7f4db7b3d7fc3359527472838da65023c6"
-  version = "v19.1.0"
+  revision = "a5cb647b1fac8ba77e1cf25af2f9526658ab63e3"
+  version = "v21.0.0"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -224,12 +224,12 @@
   version = "v1.3.1"
 
 [[projects]]
-  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
+  digest = "1:972c2427413d41a1e06ca4897e8528e5a1622894050e2f527b38ddf0f343f759"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   pruneopts = "UT"
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -241,22 +241,37 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dc54e381cd3ecdfc4f344debccbdff15caec39947e86c15887adba8b74e1a3cf"
-  name = "github.com/uthng/goutils"
+  digest = "1:2d5040a274f14a4b55937d79211bac1a596dba45d1e1f867f83b33926b71e749"
+  name = "github.com/uthng/gossh"
   packages = ["."]
   pruneopts = "UT"
-  revision = "aa8e527e91d5e19c27654e2b390ce11e4e4573a3"
+  revision = "155cf8465e39be9c41fec0ac4b5d5d5484a097f3"
 
 [[projects]]
   branch = "master"
-  digest = "1:dd658e9008df9e0bea1ddb2caa3df8250e5e42bf54dcb776ed5bef0496395549"
+  digest = "1:ac8331b9f675ee8f40ebd808571fe51c1041ccdef975964664658e2926c7ef10"
+  name = "github.com/uthng/goutils"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6434859d02e9decc8c9d63bbdbdd050b04b631e3"
+
+[[projects]]
+  branch = "master"
+  digest = "1:8385cc26bb817022453057177edc10a3278b0d53289e05257b68ac7ff6f39e44"
   name = "golang.org/x/crypto"
   packages = [
+    "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "internal/chacha20",
+    "internal/subtle",
     "pbkdf2",
+    "poly1305",
     "scrypt",
+    "ssh",
   ]
   pruneopts = "UT"
-  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+  revision = "ff983b9c42bc9fbf91556e191cc8efb585c16908"
 
 [[projects]]
   branch = "master"
@@ -267,7 +282,7 @@
     "context/ctxhttp",
   ]
   pruneopts = "UT"
-  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
+  revision = "45ffb0cd1ba084b73e26dee67e667e1be5acce83"
 
 [[projects]]
   branch = "master"
@@ -282,11 +297,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9399de11945e643d7131cf070736122b76800d92d57a80494bd9a4e73e6979f3"
+  digest = "1:ab01052262e2ef935fdec4632b4029e56e7efbc96a569feebdcdc67fd84a9b5b"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "70b957f3b65e069b4930ea94e2721eefa0f8f695"
+  revision = "20be8e55dc7b4b7a1b1660728164a8509d8c9209"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -304,7 +319,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:08206298775e5b462e6c0333f4471b44e63f1a70e42952b6ede4ecc9572281eb"
+  digest = "1:6f3bd49ddf2e104e52062774d797714371fac1b8bddfd8e124ce78e6b2264a10"
   name = "google.golang.org/appengine"
   packages = [
     "internal",
@@ -316,8 +331,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
-  version = "v1.3.0"
+  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -338,6 +353,7 @@
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
     "github.com/uthng/golog",
+    "github.com/uthng/gossh",
     "github.com/uthng/goutils",
     "golang.org/x/oauth2",
     "gopkg.in/yaml.v2",
