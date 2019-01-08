@@ -18,27 +18,23 @@ global:
 
 hosts:
   host1:
-    host: host1.com
-    port: 25
-    user: userhost1
-    password: passhost1
-    vars:
-      hostvar: host1
+    jobflow_ssh_host: host1.com
+    jobflow_ssh_port: 25
+    jobflow_ssh_user: userhost1
+    jobflow_ssh_pass: passhost1
+    hostvar: host1
   host2:
-    host: host2.com
-    port: 5555
-    user: userhost2
-    privatekey: privatekeyhost2
-    vars:
-      hostvar: host2
+    jobflow_ssh_host: host2.com
+    jobflow_ssh_port: 5555
+    jobflow_ssh_user: userhost2
+    jobflow_ssh_privkey: privatekeyhost2
+    hostvar: host2
   host3:
-    host: host3.com
-    privatekey: privatekeyhost3
-    vars:
-      hostvar: host3
+    jobflow_ssh_host: host3.com
+    jobflow_ssh_privkey: privatekeyhost3
+    hostvar: host3
   host4:
-    host: host4.com
-    password: passhost4
+    jobflow_ssh_pass: passhost4
 
 groups:
   group1:
@@ -46,8 +42,8 @@ groups:
     - host1
     - host2
     vars:
+      jobflow_ssh_user: group1user
       group1var1: group1
-      group1var2: group1
   group2:
     hosts:
     - host2
@@ -60,7 +56,8 @@ groups:
     - host3
     - host4
     vars:
-      group3var1: group3
+      hostvar: group3var1
+      jobflow_ssh_privkey: privatekeygroup3
 #  group4:
 #    groups:
 #    - group1
@@ -75,42 +72,58 @@ groups:
 		Global: map[string]interface{}{},
 		Hosts: map[string]job.Host{
 			"host1": job.Host{
-				Name:     "host1",
-				Host:     "host1.com",
-				Port:     25,
-				User:     "userhost1",
-				Password: "passhost1",
+				Name:   "host1",
+				Groups: []string{"group1"},
 				Vars: map[string]interface{}{
-					"hostvar": "host1",
+					"jobflow_ssh_host":    "host1.com",
+					"jobflow_ssh_port":    25,
+					"jobflow_ssh_user":    "group1user",
+					"jobflow_ssh_pass":    "passhost1",
+					"jobflow_ssh_privkey": "",
+					"hostvar":             "host1",
+					"group1var1":          "group1",
 				},
 			},
 			"host2": job.Host{
-				Name:       "host2",
-				Host:       "host2.com",
-				Port:       5555,
-				User:       "userhost2",
-				PrivateKey: "privatekeyhost2",
+				Name:   "host2",
+				Groups: []string{"group1", "group2"},
 				Vars: map[string]interface{}{
-					"hostvar": "host2",
+					"jobflow_ssh_host":    "host2.com",
+					"jobflow_ssh_port":    5555,
+					"jobflow_ssh_user":    "group1user",
+					"jobflow_ssh_pass":    "",
+					"jobflow_ssh_privkey": "privatekeyhost2",
+					"hostvar":             "host2",
+					"group1var1":          "group1",
+					"group2var1":          "group2",
+					"group2var2":          "group2",
 				},
 			},
 			"host3": job.Host{
-				Name:       "host3",
-				Host:       "host3.com",
-				Port:       22,
-				User:       "root",
-				PrivateKey: "privatekeyhost3",
+				Name:   "host3",
+				Groups: []string{"group2", "group3"},
 				Vars: map[string]interface{}{
-					"hostvar": "host3",
+					"jobflow_ssh_host":    "host3.com",
+					"jobflow_ssh_port":    22,
+					"jobflow_ssh_user":    "root",
+					"jobflow_ssh_pass":    "",
+					"jobflow_ssh_privkey": "privatekeygroup3",
+					"hostvar":             "group3var1",
+					"group2var1":          "group2",
+					"group2var2":          "group2",
 				},
 			},
 			"host4": job.Host{
-				Name:     "host4",
-				Host:     "host4.com",
-				Port:     22,
-				User:     "root",
-				Password: "passhost4",
-				Vars:     map[string]interface{}{},
+				Name:   "host4",
+				Groups: []string{"group3"},
+				Vars: map[string]interface{}{
+					"jobflow_ssh_host":    "localhost",
+					"jobflow_ssh_port":    22,
+					"jobflow_ssh_user":    "root",
+					"jobflow_ssh_pass":    "passhost4",
+					"jobflow_ssh_privkey": "privatekeygroup3",
+					"hostvar":             "group3var1",
+				},
 			},
 		},
 		Groups: map[string]job.Group{
@@ -118,8 +131,8 @@ groups:
 				Name:  "group1",
 				Hosts: []string{"host1", "host2"},
 				Vars: map[string]interface{}{
-					"group1var1": "group1",
-					"group1var2": "group1",
+					"group1var1":       "group1",
+					"jobflow_ssh_user": "group1user",
 				},
 			},
 			"group2": job.Group{
@@ -134,7 +147,8 @@ groups:
 				Name:  "group3",
 				Hosts: []string{"host3", "host4"},
 				Vars: map[string]interface{}{
-					"group3var1": "group3",
+					"hostvar":             "group3var1",
+					"jobflow_ssh_privkey": "privatekeygroup3",
 				},
 			},
 			//"group4": job.Group{
@@ -147,5 +161,7 @@ groups:
 	}
 
 	inventory := ReadInventoryFile(yamlInventoryFile)
-	assert.Equal(t, output, inventory)
+	assert.Equal(t, output.Global, inventory.Global)
+	assert.Equal(t, output.Hosts, inventory.Hosts)
+	assert.Equal(t, output.Groups, inventory.Groups)
 }

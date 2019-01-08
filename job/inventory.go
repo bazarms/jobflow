@@ -12,12 +12,6 @@ import (
 // Host describes structure of a host
 type Host struct {
 	Name string
-	Host string
-	Port int
-
-	User       string
-	Password   string
-	PrivateKey string
 
 	Groups []string
 	Vars   map[string]interface{}

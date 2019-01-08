@@ -10,6 +10,8 @@ import (
 	"gopkg.in/yaml.v2"
 
 	log "github.com/uthng/golog"
+	utils "github.com/uthng/goutils"
+
 	"github.com/uthng/jobflow/job"
 )
 
@@ -33,6 +35,7 @@ func ReadInventoryFile(content []byte) *job.Inventory {
 			for n, h := range cast.ToStringMap(v) {
 				host := job.Host{
 					Name: n,
+					Vars: make(map[string]interface{}),
 				}
 
 				readHost(&host, cast.ToStringMap(h))
@@ -49,6 +52,25 @@ func ReadInventoryFile(content []byte) *job.Inventory {
 
 				readGroup(&group, cast.ToStringMap(g))
 				inventory.Groups[n] = group
+
+				// Merge vars & groups in host
+				for _, h := range group.Hosts {
+					host, ok := inventory.Hosts[h]
+					if !ok {
+						log.Fatalw("Host in the group not found", "host", h, "group", group.Name)
+					}
+
+					vars, err := utils.MapStringMerge(host.Vars, group.Vars)
+					if err != nil {
+						log.Fatalw("Cannot merge group's vars in host's vars", "err", err)
+					}
+
+					host.Vars = cast.ToStringMap(vars)
+					host.Groups = append(host.Groups, group.Name)
+
+					// Update host
+					inventory.Hosts[h] = host
+				}
 			}
 		}
 	}
@@ -60,27 +82,18 @@ func ReadInventoryFile(content []byte) *job.Inventory {
 
 // readHost parses & fills up Inventory Host structure
 func readHost(h *job.Host, data map[string]interface{}) {
-	h.Host = cast.ToString(data["host"])
-	if h.Host == "" {
-		h.Host = "localhost"
-	}
+	// Init default variables for host
+	h.Vars["jobflow_ssh_host"] = "localhost"
+	h.Vars["jobflow_ssh_port"] = 22
+	h.Vars["jobflow_ssh_user"] = "root"
+	h.Vars["jobflow_ssh_pass"] = ""
+	h.Vars["jobflow_ssh_privkey"] = ""
 
-	h.Port = cast.ToInt(data["port"])
-	if h.Port == 0 {
-		h.Port = 22
-	}
-
-	h.User = cast.ToString(data["user"])
-	if h.User == "" {
-		h.User = "root"
-	}
-
-	h.Password = cast.ToString(data["password"])
-	h.PrivateKey = cast.ToString(data["privatekey"])
-
-	//Read vars
-	h.Vars = cast.ToStringMap(data["vars"])
 	h.Groups = cast.ToStringSlice(data["groups"])
+
+	for k, v := range data {
+		h.Vars[k] = v
+	}
 }
 
 // readGroup parses & fills up Inventory Group structure

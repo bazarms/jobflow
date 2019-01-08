@@ -219,14 +219,14 @@ func (job *Job) CheckTasks() bool {
 	// in Task On Success or Task On Failure exists in the list of task names
 	for _, task := range job.Tasks {
 		if task.OnSuccess != "" {
-			res = utils.IsElementInArray(task.OnSuccess, taskNames, fn)
+			res = utils.ArrayIsElementIn(task.OnSuccess, taskNames, fn)
 			if res == false {
 				log.Errorw("Task does not exist !", "task", task.OnSuccess)
 				return false
 			}
 		}
 		if task.OnFailure != "" {
-			res = utils.IsElementInArray(task.OnFailure, taskNames, fn)
+			res = utils.ArrayIsElementIn(task.OnFailure, taskNames, fn)
 			if res == false {
 				log.Errorw("Task does not exist !", "task", task.OnFailure)
 				return false
