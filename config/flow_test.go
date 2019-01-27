@@ -88,7 +88,9 @@ release:
 		},
 	}
 
-	jf := ReadFlowFile(yamlFlowFile)
+	jf := job.NewFlow()
+
+	ReadFlow(jf, yamlFlowFile)
 
 	assert.Equal(t, flowOK.Variables, jf.Variables)
 

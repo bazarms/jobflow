@@ -18,6 +18,14 @@
   version = "v2.17.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:1a200e7e73293b75eb8e5c93d023b5472663432da0b663e1532624fcfede9ca8"
+  name = "github.com/anmitsu/go-shlex"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "648efa622239a2f6ff949fed78ee37b48d499ba4"
+
+[[projects]]
   digest = "1:3b10c6fd33854dc41de2cf78b7bae105da94c2789b6fa5b9ac9e593ea43484ac"
   name = "github.com/aokoli/goutils"
   packages = ["."]
@@ -50,6 +58,14 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:74d60c90a8daf329b92887e404a23d999ff95bc7a9c111476c1753bcf178e384"
+  name = "github.com/gliderlabs/ssh"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d3a6756290240931faaf90ec97ddd5d9290623d8"
+  version = "v0.1.1"
+
+[[projects]]
   digest = "1:97df918963298c287643883209a2c3f642e6593379f97ab400c2a2e219ab647d"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
@@ -58,12 +74,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:63ede27834b468648817fb80cfb95d40abfc61341f89cb7a0d6779b6aa955425"
+  digest = "1:7a69bac90389f73502cf0591db45b0ec8b68d012e352f709e14d4e16e3c94ce3"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "UT"
-  revision = "a5cb647b1fac8ba77e1cf25af2f9526658ab63e3"
-  version = "v21.0.0"
+  revision = "56cb1dd99043eba2e21c91aa8417d3ba2329259a"
+  version = "v21.0.1"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -109,12 +125,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:8eb1de8112c9924d59bf1d3e5c26f5eaa2bfc2a5fcbb92dc1c2e4546d695f277"
+  digest = "1:a0cefd27d12712af4b5018dc7046f245e1e3b5760e2e848c30b171b570708f9b"
   name = "github.com/imdario/mergo"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4"
-  version = "v0.3.6"
+  revision = "7c29201646fa3de8506f701213473dd407f19646"
+  version = "v0.3.7"
 
 [[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
@@ -241,11 +257,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2d5040a274f14a4b55937d79211bac1a596dba45d1e1f867f83b33926b71e749"
+  digest = "1:ad5fc0ac6805be12886feacc55b1a38cda7f765a1bdb791e489ae4f171ab3d33"
   name = "github.com/uthng/gossh"
   packages = ["."]
   pruneopts = "UT"
-  revision = "155cf8465e39be9c41fec0ac4b5d5d5484a097f3"
+  revision = "ffc95615e617c20b72967cb28b196b3a0b7d754d"
 
 [[projects]]
   branch = "master"
@@ -271,7 +287,7 @@
     "ssh",
   ]
   pruneopts = "UT"
-  revision = "ff983b9c42bc9fbf91556e191cc8efb585c16908"
+  revision = "057139ce5d2bdbe6fe73c53679e24e9cf007f637"
 
 [[projects]]
   branch = "master"
@@ -282,26 +298,26 @@
     "context/ctxhttp",
   ]
   pruneopts = "UT"
-  revision = "45ffb0cd1ba084b73e26dee67e667e1be5acce83"
+  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
 
 [[projects]]
   branch = "master"
-  digest = "1:5276e08fe6a1dfdb65b4f46a2e5d5c9e00be6e499105e441049c3c04a0c83b36"
+  digest = "1:e007b54f54cbd4214aa6d97a67d57bc2539991adb4e22ea92c482bbece8de469"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
     "internal",
   ]
   pruneopts = "UT"
-  revision = "d668ce993890a79bda886613ee587a69dd5da7a6"
+  revision = "5dab4167f31cbd76b407f1486c86b40748bc5073"
 
 [[projects]]
   branch = "master"
-  digest = "1:ab01052262e2ef935fdec4632b4029e56e7efbc96a569feebdcdc67fd84a9b5b"
+  digest = "1:db12953ac7a80656b159265fe13146959beaada45938a532f484a3aeb289462e"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "20be8e55dc7b4b7a1b1660728164a8509d8c9209"
+  revision = "b90733256f2e882e81d52f9126de08df5615afd9"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -347,6 +363,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Masterminds/sprig",
+    "github.com/gliderlabs/ssh",
     "github.com/google/go-github/github",
     "github.com/spf13/cast",
     "github.com/spf13/cobra",

@@ -2,7 +2,7 @@ package config
 
 import (
 	//"fmt"
-	//"io/ioutil"
+	"io/ioutil"
 
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v2"
@@ -11,11 +11,26 @@ import (
 	"github.com/uthng/jobflow/job"
 )
 
-// ReadFlowFile unmarshals the configuration file into Config struct
-func ReadFlowFile(content []byte) *job.Flow {
-	config := make(map[string]interface{})
+// ReadFlowFile reads the flow content from a file and
+// create a new instance Flow
+func ReadFlowFile(file string) *job.Flow {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalw("Cannot read jobflow file", "file", file, "err", err)
+	}
 
 	jf := job.NewFlow()
+	jf.InventoryFile = file
+
+	ReadFlow(jf, content)
+
+	return jf
+}
+
+// ReadFlow unmarshals the content of the configuration file
+// into Config struct
+func ReadFlow(jf *job.Flow, content []byte) {
+	config := make(map[string]interface{})
 
 	// Get config under map[string]interface{}
 	//content, err := ioutil.ReadFile("testdata/hello")
@@ -41,8 +56,6 @@ func ReadFlowFile(content []byte) *job.Flow {
 			jf.Jobs = append(jf.Jobs, j)
 		}
 	}
-
-	return jf
 }
 
 ////////////// INTERNAL FUNCTIONS ////////////////////////
@@ -105,7 +118,7 @@ func readJob(j *job.Job, data map[string]interface{}) {
 				log.Fatalw("No command found", "cmd", cmd, "plugin", plugin)
 			}
 
-			task.Func = c.Func
+			task.Cmd = c
 		}
 
 		j.AddTask(task)

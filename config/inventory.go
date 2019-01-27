@@ -4,7 +4,7 @@ package config
 
 import (
 	//"fmt"
-	//"io/ioutil"
+	"io/ioutil"
 
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v2"
@@ -15,11 +15,24 @@ import (
 	"github.com/uthng/jobflow/job"
 )
 
-// ReadInventoryFile unmarshals the inventory file
-func ReadInventoryFile(content []byte) *job.Inventory {
-	config := make(map[string]interface{})
+// ReadInventoryFile reads the flow content from a file and
+// create a new instance Inventory
+func ReadInventoryFile(file string) *job.Inventory {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalw("Cannot read inventory file", "file", file, "err", err)
+	}
 
 	inventory := job.NewInventory()
+
+	ReadInventory(inventory, content)
+
+	return inventory
+}
+
+// ReadInventory unmarshals the inventory file
+func ReadInventory(inventory *job.Inventory, content []byte) {
+	config := make(map[string]interface{})
 
 	err := yaml.Unmarshal(content, &config)
 	if err != nil {
@@ -74,8 +87,6 @@ func ReadInventoryFile(content []byte) *job.Inventory {
 			}
 		}
 	}
-
-	return inventory
 }
 
 ////////////// INTERNAL FUNCTIONS ////////////////////////
