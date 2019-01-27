@@ -7,26 +7,26 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
-	"github.com/uthng/jobflow/job"
 	log "github.com/uthng/golog"
+	"github.com/uthng/jobflow/job"
 )
 
-var module = job.Module{
+var plugin = job.Plugin{
 	Name:        "gox",
 	Version:     "0.1",
 	Description: "Use gox to build multiple platforms",
 }
 
-// List of available commands for this module
+// List of available commands for this plugin
 var commands = []job.Cmd{
 	{
 		Name:   "build",
 		Func:   CmdBuild,
-		Module: module,
+		Plugin: plugin,
 	},
 }
 
-// Init initializes module by registering all its commands
+// Init initializes plugin by registering all its commands
 // to command registry
 func init() {
 	for _, cmd := range commands {

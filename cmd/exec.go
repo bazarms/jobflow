@@ -16,7 +16,7 @@ package cmd
 
 import (
 	//"fmt"
-	"io/ioutil"
+	//"io/ioutil"
 
 	"github.com/spf13/cobra"
 
@@ -66,21 +66,10 @@ func exec(args []string) *job.Flow {
 		log.Fatalln("No jobflow file is specified")
 	}
 
-	// Read flow file
-	content, err := ioutil.ReadFile(args[0])
-	if err != nil {
-		log.Fatalw("Cannot read jobflow file", "file", args[0], "err", err)
-	}
-
-	jf := config.ReadFlowFile(content)
+	jf := config.ReadFlowFile(args[0])
 
 	if inventory != "" {
-		content, err := ioutil.ReadFile(inventory)
-		if err != nil {
-			log.Fatalw("Cannot read inventory file", "file", inventory, "err", err)
-		}
-
-		jf.Inventory = config.ReadInventoryFile(content)
+		jf.Inventory = config.ReadInventoryFile(inventory)
 	}
 
 	//Execute all jobs

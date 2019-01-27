@@ -19,8 +19,8 @@ type CmdResult struct {
 // CmdFunc is a command function
 type CmdFunc func(map[string]interface{}) *CmdResult
 
-// Module contains les informations of a module
-type Module struct {
+// Plugin contains les informations of a module
+type Plugin struct {
 	// Name is module name
 	Name string
 	// Version is module version
@@ -35,8 +35,8 @@ type Cmd struct {
 	Name string
 	// Func is command function
 	Func CmdFunc
-	// Module is the module to which the command belongs to
-	Module Module
+	// Plugin is the module to which the command belongs to
+	Plugin Plugin
 }
 
 // CmdRegistry is a registry for commands
@@ -82,7 +82,7 @@ func GetCmdRegistry() *CmdRegistry {
 // cmd: Command to register
 func CmdRegister(cmd Cmd) error {
 	// Name in commande registry = <module name>.<cmd name>
-	var name = cmd.Module.Name + "." + cmd.Name
+	var name = cmd.Plugin.Name + "." + cmd.Name
 
 	// Verify if command already exists in the registry
 	_, ok := cmdRegistry.CmdList[name]
@@ -97,7 +97,7 @@ func CmdRegister(cmd Cmd) error {
 // CmdUnregister unregister a command in command registry
 // cmd: command to unregister
 func CmdUnregister(cmd Cmd) error {
-	var name = cmd.Module.Name + "." + cmd.Name
+	var name = cmd.Plugin.Name + "." + cmd.Name
 
 	// Remove if cmd exists
 	_, ok := cmdRegistry.CmdList[name]

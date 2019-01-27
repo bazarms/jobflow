@@ -31,7 +31,7 @@ type Job struct {
 // Task describes attributes of a task
 type Task struct {
 	Name      string
-	Func      CmdFunc
+	Cmd       Cmd
 	Params    map[string]interface{}
 	OnSuccess string
 	OnFailure string
@@ -111,7 +111,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 			return err
 		}
 
-		if s.Func == nil {
+		if s.Cmd.Func == nil {
 			log.Warnln("Ignored", "task", task, "reason", "func is nil")
 			continue
 		}
@@ -124,7 +124,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 			return err
 		}
 
-		s.Result = s.Func(s.Params)
+		s.Result = s.Cmd.Func(s.Params)
 
 		if s.Result.Error != nil {
 			log.Errorw("Task result", "task", s.Name, "err", s.Result.Error)
@@ -146,7 +146,7 @@ func (job *Job) RunTaskByTask(tasks string) error {
 func (job *Job) RunAllTasks(task *Task) error {
 	log.Infow("Running", "task", task.Name)
 
-	if task.Func == nil {
+	if task.Cmd.Func == nil {
 		log.Warnw("Ignored", "task", task.Name, "reason", "func is nil")
 		return nil
 	}
@@ -159,7 +159,7 @@ func (job *Job) RunAllTasks(task *Task) error {
 		return err
 	}
 
-	task.Result = task.Func(task.Params)
+	task.Result = task.Cmd.Func(task.Params)
 
 	if task.Result.Error != nil {
 		log.Errorw("Result", "task", task.Name, "err", task.Result.Error)
