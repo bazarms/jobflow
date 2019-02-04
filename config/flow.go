@@ -22,6 +22,8 @@ func ReadFlowFile(file string) *job.Flow {
 	jf := job.NewFlow()
 	jf.InventoryFile = file
 
+	jf.IsOnRemote = false
+
 	ReadFlow(jf, content)
 
 	return jf
@@ -44,7 +46,9 @@ func ReadFlow(jf *job.Flow, content []byte) {
 	}
 
 	for k, v := range config {
-		if k == "variables" {
+		if k == "on_remote" {
+			jf.IsOnRemote = cast.ToBool(v)
+		} else if k == "variables" {
 			jf.Variables = cast.ToStringMap(v)
 		} else {
 			j := job.NewJob(k)

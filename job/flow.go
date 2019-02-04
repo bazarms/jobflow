@@ -1,6 +1,7 @@
 package job
 
 import (
+	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"math/rand"
@@ -26,6 +27,10 @@ type Flow struct {
 
 	RemoteExecDir string
 	InventoryFile string
+
+	// IsOnRemote indicates if the flow file is on remote machine
+	// even if it is local
+	IsOnRemote bool
 }
 
 ////////// DEFINITION OF ALL FUNCTIONS ///////////////////////////
@@ -49,10 +54,11 @@ func (f *Flow) RunAllJobs() {
 }
 
 // RunJob executes a specified job with the name given
-func (f *Flow) RunJob(job string) {
+func (f *Flow) RunJob(job string) error {
 	if job == "" {
-		log.Errorln("No job name is specified")
-		return
+		err := fmt.Errorf("No job name is specified")
+		log.Errorw(err.Error())
+		return err
 	}
 
 	// Loop jobs and exec job by job.
@@ -60,10 +66,13 @@ func (f *Flow) RunJob(job string) {
 		if j.Name == job {
 			err := f.execJob(j)
 			if err != nil {
-				log.Errorln(err)
+				log.Errorw(err.Error())
+				return err
 			}
 		}
 	}
+
+	return nil
 }
 
 /////////// INTERNAL FUNCTIONS /////////////////////////:
@@ -83,7 +92,19 @@ func (f *Flow) execJobLocal(job *Job) error {
 	// Set context to execute job
 	job.Context["variables"] = f.Variables
 
-	return job.Run("")
+	jobErr := job.Run("")
+
+	// Marshalling job result to print if it is on remote
+	if f.IsOnRemote {
+		jobBytes, jsErr := json.Marshal(job.Result)
+		if jsErr != nil {
+			fmt.Println(jsErr)
+		} else {
+			fmt.Println(string(jobBytes))
+		}
+	}
+
+	return jobErr
 }
 
 // execJobRemote executes job on remote hosts
@@ -136,9 +157,6 @@ func (f *Flow) execJobRemote(job *Job) error {
 				return err
 			}
 
-			bytes, err := client.ExecCommand("echo " + f.RemoteExecDir)
-			log.Infoln(string(bytes))
-
 			// Find location of jobflow binary on the local machine
 			//var dirAbsPath string
 			exec, err := os.Executable()
@@ -151,9 +169,10 @@ func (f *Flow) execJobRemote(job *Job) error {
 
 			// Random string
 			randStr := randomString(10)
-			remoteDir := f.RemoteExecDir + "/" + randStr
+			remoteDir := f.RemoteExecDir + "/." + randStr
 			binExec := filepath.Base(exec)
 
+			log.Infoln(randStr)
 			// Create a tmp on remote machine
 			_, err = client.ExecCommand("mkdir -p " + remoteDir)
 			if err != nil {
@@ -185,9 +204,18 @@ func (f *Flow) execJobRemote(job *Job) error {
 			//time.Sleep(time.Second * 5)
 
 			// Execute jobflow on remote machine with new location
-			_, err = client.ExecCommand(remoteDir + "/" + binExec + " " + remoteDir + "/flow.yml")
+			remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 " + remoteDir + "/flow.yml"
+			log.Infoln(remoteCmd)
+			remoteRes, err := client.ExecCommand(remoteCmd)
 			if err != nil {
 				log.Errorw("Failed to execute flow file on remote machine", "err", err)
+				return err
+			}
+
+			// Unmarshalling remote result to store in current job locally
+			err = json.Unmarshal(remoteRes, &job.Result)
+			if err != nil {
+				log.Errorw("Failed to unmarshal remote job result", "res", string(remoteRes))
 				return err
 			}
 
@@ -197,10 +225,10 @@ func (f *Flow) execJobRemote(job *Job) error {
 				log.Errorw("Failed to remove folder on remote machine", "dir", remoteDir, "err", err)
 				return err
 			}
-
 		}
 	}
 
+	log.Infoln(job.Result)
 	return nil
 }
 
@@ -209,6 +237,7 @@ func (f *Flow) generateLocalFlowRemoteMachine(j *Job) ([]byte, error) {
 	job := make(map[string]interface{})
 	tasks := []map[string]interface{}{}
 
+	mFlow["on_remote"] = "true"
 	mFlow["variables"] = f.Variables
 
 	// Tasks
