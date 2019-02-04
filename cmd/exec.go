@@ -32,6 +32,7 @@ import (
 var (
 	jobexec   string
 	inventory string
+	verbosity int
 )
 
 // execCmd represents the exec command
@@ -40,7 +41,8 @@ var execCmd = &cobra.Command{
 	Short: "Exec command is to execute jobs",
 	Long:  `Exec command is to execute a specific job. If no job specified, all jobs will get executed in the order.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//log.SetVerbosity(log.DEBUG)
+		log.SetVerbosity(verbosity)
+
 		exec(args)
 	},
 }
@@ -54,6 +56,7 @@ func init() {
 	// and all subcommands, e.g.:
 	execCmd.PersistentFlags().StringVar(&jobexec, "job", "all", "Job's name. Default: all")
 	execCmd.PersistentFlags().StringVar(&inventory, "inventory", "", "Inventory file")
+	execCmd.PersistentFlags().IntVar(&verbosity, "verbosity", log.INFO, "Log level. Default: INFO")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
