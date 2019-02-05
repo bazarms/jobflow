@@ -24,6 +24,7 @@ type Flow struct {
 	Variables map[string]interface{}
 	Jobs      []*Job
 	Inventory *Inventory
+	Result    map[string]interface{}
 
 	RemoteExecDir string
 	InventoryFile string
@@ -40,6 +41,7 @@ func NewFlow() *Flow {
 	flow := &Flow{
 		Variables:     make(map[string]interface{}),
 		RemoteExecDir: "$HOME",
+		Result:        make(map[string]interface{}),
 	}
 
 	return flow
@@ -172,7 +174,6 @@ func (f *Flow) execJobRemote(job *Job) error {
 			remoteDir := f.RemoteExecDir + "/." + randStr
 			binExec := filepath.Base(exec)
 
-			log.Infoln(randStr)
 			// Create a tmp on remote machine
 			_, err = client.ExecCommand("mkdir -p " + remoteDir)
 			if err != nil {
@@ -205,7 +206,6 @@ func (f *Flow) execJobRemote(job *Job) error {
 
 			// Execute jobflow on remote machine with new location
 			remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 " + remoteDir + "/flow.yml"
-			log.Infoln(remoteCmd)
 			remoteRes, err := client.ExecCommand(remoteCmd)
 			if err != nil {
 				log.Errorw("Failed to execute flow file on remote machine", "err", err)
@@ -219,6 +219,8 @@ func (f *Flow) execJobRemote(job *Job) error {
 				return err
 			}
 
+			f.Result[job.Name] = job.Result
+
 			//Remove tmp folder on remote machine
 			_, err = client.ExecCommand("rm -rf " + remoteDir)
 			if err != nil {
@@ -228,7 +230,6 @@ func (f *Flow) execJobRemote(job *Job) error {
 		}
 	}
 
-	log.Infoln(job.Result)
 	return nil
 }
 
