@@ -19,8 +19,11 @@ all: clean build
 
 # Build targets multiple platforms
 build: clean test-unit deps
-	gox -osarch="linux/amd64" \
+	gox -osarch="linux/amd64" -ldflags="-s -w" \
 	-output="bin/{{.OS}}_{{.Arch}}/"$(TARGET) .
+
+optimize:
+	tools/upx --brute $(TARGET)
 
 test-unit:
 	go test -count 1 -v ./...
