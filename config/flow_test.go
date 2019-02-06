@@ -7,6 +7,7 @@ import (
 	//"reflect"
 	"testing"
 
+	//"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/uthng/jobflow/job"
@@ -94,16 +95,46 @@ release:
 
 	assert.Equal(t, flowOK.Variables, jf.Variables)
 
-	for index, job := range jf.Jobs {
-		assert.Equal(t, flowOK.Jobs[index].Name, job.Name)
-		assert.Equal(t, flowOK.Jobs[index].Hosts, job.Hosts)
-		for idx, task := range job.Tasks {
-			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].Name, task.Name)
+	expectedJobs := make(map[string]interface{})
+	actualJobs := make(map[string]interface{})
 
-			// As we cannot compare 2 funcs in go, so we zap it
-			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].OnSuccess, task.OnSuccess)
-			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].OnFailure, task.OnFailure)
-			assert.Equal(t, flowOK.Jobs[index].Tasks[idx].Result, task.Result)
+	for _, job := range jf.Jobs {
+		actualJobs[job.Name] = job
+	}
+
+	for _, job := range flowOK.Jobs {
+		expectedJobs[job.Name] = job
+	}
+
+	assert.Equal(t, len(expectedJobs), len(actualJobs))
+
+	for k, v := range expectedJobs {
+		expected := v.(*job.Job)
+		actual := actualJobs[k].(*job.Job)
+
+		assert.Equal(t, expected.Name, actual.Name)
+		assert.Equal(t, expected.Hosts, actual.Hosts)
+
+		expectedTasks := make(map[string]interface{})
+		actualTasks := make(map[string]interface{})
+
+		for _, task := range actual.Tasks {
+			actualTasks[task.Name] = task
+		}
+
+		for _, task := range expected.Tasks {
+			expectedTasks[task.Name] = task
+		}
+
+		for k, v := range expectedTasks {
+			expected := v.(*job.Task)
+			actual := actualTasks[k].(*job.Task)
+
+			assert.Equal(t, expected.Name, actual.Name)
+			assert.Equal(t, expected.Params, actual.Params)
+			assert.Equal(t, expected.OnSuccess, actual.OnSuccess)
+			assert.Equal(t, expected.OnFailure, actual.OnFailure)
+			assert.Equal(t, expected.Result, actual.Result)
 		}
 	}
 }

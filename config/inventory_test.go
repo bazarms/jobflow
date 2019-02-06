@@ -7,6 +7,7 @@ import (
 	//"reflect"
 	"testing"
 
+	//"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
 	"github.com/uthng/jobflow/job"
 	//log "github.com/uthng/golog"
@@ -160,8 +161,24 @@ groups:
 		},
 	}
 
-	inventory := ReadInventoryFile(yamlInventoryFile)
+	inventory := job.NewInventory()
+	ReadInventory(inventory, yamlInventoryFile)
 	assert.Equal(t, output.Global, inventory.Global)
-	assert.Equal(t, output.Hosts, inventory.Hosts)
-	assert.Equal(t, output.Groups, inventory.Groups)
+	for k, v := range inventory.Hosts {
+		expected := output.Hosts[k]
+		actual := v
+
+		assert.Equal(t, expected.Name, actual.Name)
+		assert.ElementsMatch(t, expected.Groups, actual.Groups)
+		assert.Equal(t, expected.Vars, actual.Vars)
+
+	}
+	for k, v := range inventory.Groups {
+		expected := output.Groups[k]
+		actual := v
+
+		assert.Equal(t, expected.Name, actual.Name)
+		assert.ElementsMatch(t, expected.Hosts, actual.Hosts)
+		assert.Equal(t, expected.Vars, actual.Vars)
+	}
 }

@@ -39,51 +39,53 @@ func ReadInventory(inventory *job.Inventory, content []byte) {
 		log.Fatalw("Cannot unmarshal inventory file content", "err", err)
 	}
 
-	for k, v := range config {
-		if k == "global" {
-			inventory.Global = cast.ToStringMap(v)
-		}
-		if k == "hosts" {
-			// Parse hosts
-			for n, h := range cast.ToStringMap(v) {
-				host := job.Host{
-					Name: n,
-					Vars: make(map[string]interface{}),
-				}
+	v, ok := config["global"]
+	if ok {
+		inventory.Global = cast.ToStringMap(v)
+	}
 
-				readHost(&host, cast.ToStringMap(h))
-				inventory.Hosts[n] = host
+	v, ok = config["hosts"]
+	if ok {
+		// Parse hosts
+		for n, h := range cast.ToStringMap(v) {
+			host := job.Host{
+				Name: n,
+				Vars: make(map[string]interface{}),
 			}
+
+			readHost(&host, cast.ToStringMap(h))
+			inventory.Hosts[n] = host
 		}
+	}
 
-		if k == "groups" {
-			// Parse groups
-			for n, g := range cast.ToStringMap(v) {
-				group := job.Group{
-					Name: n,
+	v, ok = config["groups"]
+	if ok {
+		// Parse groups
+		for n, g := range cast.ToStringMap(v) {
+			group := job.Group{
+				Name: n,
+			}
+
+			readGroup(&group, cast.ToStringMap(g))
+			inventory.Groups[n] = group
+
+			// Merge vars & groups in host
+			for _, h := range group.Hosts {
+				host, ok := inventory.Hosts[h]
+				if !ok {
+					log.Fatalw("Host in the group not found", "host", h, "group", group.Name)
 				}
 
-				readGroup(&group, cast.ToStringMap(g))
-				inventory.Groups[n] = group
-
-				// Merge vars & groups in host
-				for _, h := range group.Hosts {
-					host, ok := inventory.Hosts[h]
-					if !ok {
-						log.Fatalw("Host in the group not found", "host", h, "group", group.Name)
-					}
-
-					vars, err := utils.MapStringMerge(host.Vars, group.Vars)
-					if err != nil {
-						log.Fatalw("Cannot merge group's vars in host's vars", "err", err)
-					}
-
-					host.Vars = cast.ToStringMap(vars)
-					host.Groups = append(host.Groups, group.Name)
-
-					// Update host
-					inventory.Hosts[h] = host
+				vars, err := utils.MapStringMerge(host.Vars, group.Vars)
+				if err != nil {
+					log.Fatalw("Cannot merge group's vars in host's vars", "err", err)
 				}
+
+				host.Vars = cast.ToStringMap(vars)
+				host.Groups = append(host.Groups, group.Name)
+
+				// Update host
+				inventory.Hosts[h] = host
 			}
 		}
 	}
