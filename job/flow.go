@@ -97,6 +97,7 @@ func (f *Flow) execJobLocal(job *Job) error {
 	jobErr := job.Run("")
 
 	// Marshalling job result to print if it is on remote
+	// Store job result only when it is local
 	if f.IsOnRemote {
 		jobBytes, jsErr := json.Marshal(job.Result)
 		if jsErr != nil {
@@ -104,6 +105,8 @@ func (f *Flow) execJobLocal(job *Job) error {
 		} else {
 			fmt.Println(string(jobBytes))
 		}
+	} else {
+		f.Result[job.Name] = job.Result
 	}
 
 	return jobErr
