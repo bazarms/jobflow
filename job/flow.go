@@ -114,123 +114,140 @@ func (f *Flow) execJobLocal(job *Job) error {
 
 // execJobRemote executes job on remote hosts
 func (f *Flow) execJobRemote(job *Job) error {
-	//var sshClients []*gossh.Client
-	var config *gossh.Config
-	var err error
 
 	// Check if job hosts is a group or only a host
 	// If it is a group, loop all hosts to init a ssh client
-
 	group, ok := f.Inventory.Groups[job.Hosts]
 	if ok {
 		for _, hostname := range group.Hosts {
-
-			host, ok := f.Inventory.Hosts[hostname]
-			if !ok {
-				err := fmt.Errorf("host %s in the group %s not found", hostname, group.Name)
-				log.Errorw("Error inventory", "err", err)
-				return err
-			}
-
-			sshUser := cast.ToString(host.Vars["jobflow_ssh_user"])
-			sshPass := cast.ToString(host.Vars["jobflow_ssh_pass"])
-			sshHost := cast.ToString(host.Vars["jobflow_ssh_host"])
-			sshPort := cast.ToInt(host.Vars["jobflow_ssh_port"])
-			sshPrivkey := cast.ToString(host.Vars["jobflow_ssh_privkey"])
-
-			if sshPrivkey != "" {
-				config, err = gossh.NewClientConfigWithKeyFile(sshUser, sshPrivkey, sshHost, sshPort, false)
-				if err != nil {
-					log.Errorw("Error SSH connection", "user", sshUser, "host", sshHost, "port", sshPort, "privkey", sshPrivkey, "err", err)
-					return err
-				}
-			} else if sshPass != "" {
-				config, err = gossh.NewClientConfigWithUserPass(sshUser, sshPass, sshHost, sshPort, false)
-				if err != nil {
-					log.Errorw("Error SSH connection", "user", sshUser, "host", sshHost, "port", sshPort, "pass", "********", "err", err)
-					return err
-				}
-			} else {
-				err := fmt.Errorf("no ssh password or private key is specified for connection")
-				log.Errorw("Error SSH connection", "err", err)
-				return err
-			}
-
-			client, err := gossh.NewClient(config)
+			err := f.execJobViaSSH(hostname, job)
 			if err != nil {
-				log.Errorw("Error creating SSH client", "user", sshUser, "host", sshHost, "port", sshPort, "err", err)
 				return err
 			}
 
-			// Find location of jobflow binary on the local machine
-			//var dirAbsPath string
-			exec, err := os.Executable()
-			if err != nil {
-				//dirAbsPath = filepath.Dir(ex)
-				//fmt.Println(ex)
-				log.Errorw("Error getting current binary path", "err", err)
-				return err
-			}
-
-			// Random string
-			randStr := randomString(10)
-			remoteDir := f.RemoteExecDir + "/." + randStr
-			binExec := filepath.Base(exec)
-
-			// Create a tmp on remote machine
-			_, err = client.ExecCommand("mkdir -p " + remoteDir)
-			if err != nil {
-				log.Errorw("Failed to create a remote folder", "dir", remoteDir, "err", err)
-				return err
-			}
-
-			// SCP jobflow binary from local machine to remote machine
-			err = client.SCPFile(exec, remoteDir+"/"+binExec, "0755")
-			if err != nil {
-				log.Errorw("Failed to scp file to remote machine", "exec", exec, "err", err)
-				return err
-			}
-
-			// SCP other files: jobflow yaml containing only
-			// the current job to remote machine
-			newFlow, err := f.generateLocalFlowRemoteMachine(job)
-			if err != nil {
-				log.Errorw("Failed to generate new local flow file for remote machine", "err", err)
-				return err
-			}
-
-			err = client.SCPBytes(newFlow, remoteDir+"/flow.yml", "0755")
-			if err != nil {
-				log.Errorw("Failed to scp new flow file to remote machine", "err", err)
-				return err
-			}
-
-			//time.Sleep(time.Second * 5)
-
-			// Execute jobflow on remote machine with new location
-			remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 " + remoteDir + "/flow.yml"
-			remoteRes, err := client.ExecCommand(remoteCmd)
-			if err != nil {
-				log.Errorw("Failed to execute flow file on remote machine", "err", err)
-				return err
-			}
-
-			// Unmarshalling remote result to store in current job locally
-			err = json.Unmarshal(remoteRes, &job.Result)
-			if err != nil {
-				log.Errorw("Failed to unmarshal remote job result", "res", string(remoteRes))
-				return err
-			}
-
+			// Store job result
 			f.Result[job.Name] = job.Result
-
-			//Remove tmp folder on remote machine
-			_, err = client.ExecCommand("rm -rf " + remoteDir)
-			if err != nil {
-				log.Errorw("Failed to remove folder on remote machine", "dir", remoteDir, "err", err)
-				return err
-			}
 		}
+	} else {
+		err := f.execJobViaSSH(job.Hosts, job)
+		if err != nil {
+			return err
+		}
+
+		// Store job result
+		f.Result[job.Name] = job.Result
+	}
+
+	fmt.Println(f.Result)
+	return nil
+}
+
+func (f *Flow) execJobViaSSH(hostname string, job *Job) error {
+	var config *gossh.Config
+	var err error
+
+	host, ok := f.Inventory.Hosts[hostname]
+	if !ok {
+		err := fmt.Errorf("Host %s not found", hostname)
+		log.Errorw("Error inventory", "err", err)
+		return err
+	}
+
+	sshUser := cast.ToString(host.Vars["jobflow_ssh_user"])
+	sshPass := cast.ToString(host.Vars["jobflow_ssh_pass"])
+	sshHost := cast.ToString(host.Vars["jobflow_ssh_host"])
+	sshPort := cast.ToInt(host.Vars["jobflow_ssh_port"])
+	sshPrivkey := cast.ToString(host.Vars["jobflow_ssh_privkey"])
+
+	if sshPrivkey != "" {
+		config, err = gossh.NewClientConfigWithKeyFile(sshUser, sshPrivkey, sshHost, sshPort, false)
+		if err != nil {
+			log.Errorw("Error SSH connection", "user", sshUser, "host", sshHost, "port", sshPort, "privkey", sshPrivkey, "err", err)
+			return err
+		}
+	} else if sshPass != "" {
+		config, err = gossh.NewClientConfigWithUserPass(sshUser, sshPass, sshHost, sshPort, false)
+		if err != nil {
+			log.Errorw("Error SSH connection", "user", sshUser, "host", sshHost, "port", sshPort, "pass", "********", "err", err)
+			return err
+		}
+	} else {
+		err := fmt.Errorf("no ssh password or private key is specified for connection")
+		log.Errorw("Error SSH connection", "err", err)
+		return err
+	}
+
+	client, err := gossh.NewClient(config)
+	if err != nil {
+		log.Errorw("Error creating SSH client", "user", sshUser, "host", sshHost, "port", sshPort, "err", err)
+		return err
+	}
+
+	// Find location of jobflow binary on the local machine
+	//var dirAbsPath string
+	exec, err := os.Executable()
+	if err != nil {
+		//dirAbsPath = filepath.Dir(ex)
+		//fmt.Println(ex)
+		log.Errorw("Error getting current binary path", "err", err)
+		return err
+	}
+
+	// Random string
+	randStr := randomString(10)
+	remoteDir := f.RemoteExecDir + "/." + randStr
+	binExec := filepath.Base(exec)
+
+	// Create a tmp on remote machine
+	_, err = client.ExecCommand("mkdir -p " + remoteDir)
+	if err != nil {
+		log.Errorw("Failed to create a remote folder", "dir", remoteDir, "err", err)
+		return err
+	}
+
+	// SCP jobflow binary from local machine to remote machine
+	err = client.SCPFile(exec, remoteDir+"/"+binExec, "0755")
+	if err != nil {
+		log.Errorw("Failed to scp file to remote machine", "exec", exec, "err", err)
+		return err
+	}
+
+	// SCP other files: jobflow yaml containing only
+	// the current job to remote machine
+	newFlow, err := f.generateLocalFlowRemoteMachine(job)
+	if err != nil {
+		log.Errorw("Failed to generate new local flow file for remote machine", "err", err)
+		return err
+	}
+
+	err = client.SCPBytes(newFlow, remoteDir+"/flow.yml", "0755")
+	if err != nil {
+		log.Errorw("Failed to scp new flow file to remote machine", "err", err)
+		return err
+	}
+
+	//time.Sleep(time.Second * 5)
+
+	// Execute jobflow on remote machine with new location
+	remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 " + remoteDir + "/flow.yml"
+	remoteRes, err := client.ExecCommand(remoteCmd)
+	if err != nil {
+		log.Errorw("Failed to execute flow file on remote machine", "err", err)
+		return err
+	}
+
+	// Unmarshalling remote result to store in current job locally
+	err = json.Unmarshal(remoteRes, &job.Result)
+	if err != nil {
+		log.Errorw("Failed to unmarshal remote job result", "res", string(remoteRes))
+		return err
+	}
+
+	//Remove tmp folder on remote machine
+	_, err = client.ExecCommand("rm -rf " + remoteDir)
+	if err != nil {
+		log.Errorw("Failed to remove folder on remote machine", "dir", remoteDir, "err", err)
+		return err
 	}
 
 	return nil
