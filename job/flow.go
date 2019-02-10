@@ -24,7 +24,6 @@ type Flow struct {
 	Variables map[string]interface{}
 	Jobs      []*Job
 	Inventory *Inventory
-	Result    map[string]interface{}
 
 	RemoteExecDir string
 	InventoryFile string
@@ -32,6 +31,9 @@ type Flow struct {
 	// IsOnRemote indicates if the flow file is on remote machine
 	// even if it is local
 	IsOnRemote bool
+
+	Status int
+	Result map[string][]*Job
 }
 
 ////////// DEFINITION OF ALL FUNCTIONS ///////////////////////////
@@ -41,7 +43,8 @@ func NewFlow() *Flow {
 	flow := &Flow{
 		Variables:     make(map[string]interface{}),
 		RemoteExecDir: "$HOME",
-		Result:        make(map[string]interface{}),
+		Status:        SUCCESS,
+		Result:        make(map[string][]*Job),
 	}
 
 	return flow
@@ -51,6 +54,7 @@ func NewFlow() *Flow {
 func (f *Flow) RunAllJobs() {
 	// Loop jobs and exec job by job.
 	for _, j := range f.Jobs {
+		log.Infoln("Executing job", j.Name)
 		f.execJob(j)
 	}
 }
@@ -59,6 +63,7 @@ func (f *Flow) RunAllJobs() {
 func (f *Flow) RunJob(job string) error {
 	if job == "" {
 		err := fmt.Errorf("No job name is specified")
+		f.Status = FAILED
 		log.Errorw(err.Error())
 		return err
 	}
@@ -68,6 +73,7 @@ func (f *Flow) RunJob(job string) error {
 		if j.Name == job {
 			err := f.execJob(j)
 			if err != nil {
+				f.Status = FAILED
 				log.Errorw(err.Error())
 				return err
 			}
@@ -88,7 +94,9 @@ func (f *Flow) execJob(job *Job) error {
 }
 
 // execJobLocal executes job on the current host directly
-func (f *Flow) execJobLocal(job *Job) error {
+func (f *Flow) execJobLocal(j *Job) error {
+	job := copyJob(j)
+
 	job.Start = job.Tasks[0]
 
 	// Set context to execute job
@@ -106,51 +114,67 @@ func (f *Flow) execJobLocal(job *Job) error {
 			fmt.Println(string(jobBytes))
 		}
 	} else {
-		f.Result[job.Name] = job.Result
+		job.Hosts = "localhost"
+		f.Result["localhost"] = append(f.Result["localhost"], job)
 	}
 
 	return jobErr
 }
 
 // execJobRemote executes job on remote hosts
-func (f *Flow) execJobRemote(job *Job) error {
+func (f *Flow) execJobRemote(j *Job) error {
+	var count int
+
+	channel := make(chan *Job)
 
 	// Check if job hosts is a group or only a host
 	// If it is a group, loop all hosts to init a ssh client
-	group, ok := f.Inventory.Groups[job.Hosts]
+	group, ok := f.Inventory.Groups[j.Hosts]
 	if ok {
 		for _, hostname := range group.Hosts {
-			err := f.execJobViaSSH(hostname, job)
-			if err != nil {
-				return err
-			}
+			job := copyJob(j)
+			job.Hosts = hostname
 
-			// Store job result
-			f.Result[job.Name] = job.Result
+			go f.execJobViaSSH(job, channel)
 		}
+
+		count = len(group.Hosts)
 	} else {
-		err := f.execJobViaSSH(job.Hosts, job)
-		if err != nil {
-			return err
-		}
+		job := copyJob(j)
 
-		// Store job result
-		f.Result[job.Name] = job.Result
+		go f.execJobViaSSH(job, channel)
+
+		count = 1
 	}
 
-	fmt.Println(f.Result)
+	for i := 0; i < count; i++ {
+		j := <-channel
+
+		// Store job result
+		f.Result[j.Hosts] = append(f.Result[j.Hosts], j)
+	}
+
+	for k, v := range f.Result {
+		fmt.Println(k, ":")
+		for _, j := range v {
+			fmt.Printf("\t%s:\n", j.Name)
+			for k, v := range j.Result {
+				fmt.Printf("\t\t%s: %+v\n", k, v)
+			}
+		}
+	}
 	return nil
 }
 
-func (f *Flow) execJobViaSSH(hostname string, job *Job) error {
+func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 	var config *gossh.Config
 	var err error
 
-	host, ok := f.Inventory.Hosts[hostname]
+	host, ok := f.Inventory.Hosts[j.Hosts]
 	if !ok {
-		err := fmt.Errorf("Host %s not found", hostname)
-		log.Errorw("Error inventory", "err", err)
-		return err
+		log.Errorw("Host not found", "host", j.Hosts)
+		j.Status = FAILED
+		return
 	}
 
 	sshUser := cast.ToString(host.Vars["jobflow_ssh_user"])
@@ -163,24 +187,31 @@ func (f *Flow) execJobViaSSH(hostname string, job *Job) error {
 		config, err = gossh.NewClientConfigWithKeyFile(sshUser, sshPrivkey, sshHost, sshPort, false)
 		if err != nil {
 			log.Errorw("Error SSH connection", "user", sshUser, "host", sshHost, "port", sshPort, "privkey", sshPrivkey, "err", err)
-			return err
+			j.Status = FAILED
+			ch <- j
+			return
 		}
 	} else if sshPass != "" {
 		config, err = gossh.NewClientConfigWithUserPass(sshUser, sshPass, sshHost, sshPort, false)
 		if err != nil {
 			log.Errorw("Error SSH connection", "user", sshUser, "host", sshHost, "port", sshPort, "pass", "********", "err", err)
-			return err
+			j.Status = FAILED
+			ch <- j
+			return
 		}
 	} else {
-		err := fmt.Errorf("no ssh password or private key is specified for connection")
-		log.Errorw("Error SSH connection", "err", err)
-		return err
+		log.Errorw("No ssh password or private key is specified for connection")
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	client, err := gossh.NewClient(config)
 	if err != nil {
 		log.Errorw("Error creating SSH client", "user", sshUser, "host", sshHost, "port", sshPort, "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	// Find location of jobflow binary on the local machine
@@ -190,7 +221,9 @@ func (f *Flow) execJobViaSSH(hostname string, job *Job) error {
 		//dirAbsPath = filepath.Dir(ex)
 		//fmt.Println(ex)
 		log.Errorw("Error getting current binary path", "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	// Random string
@@ -202,28 +235,51 @@ func (f *Flow) execJobViaSSH(hostname string, job *Job) error {
 	_, err = client.ExecCommand("mkdir -p " + remoteDir)
 	if err != nil {
 		log.Errorw("Failed to create a remote folder", "dir", remoteDir, "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
+
+	// Defer function to clean up remote machine
+	// and send final job to channel
+	defer func() {
+		//Remove tmp folder on remote machine
+		_, err = client.ExecCommand("rm -rf " + remoteDir)
+		if err != nil {
+			log.Errorw("Failed to remove folder on remote machine", "dir", remoteDir, "err", err)
+			j.Status = FAILED
+			ch <- j
+			return
+		}
+
+		ch <- j
+	}()
 
 	// SCP jobflow binary from local machine to remote machine
 	err = client.SCPFile(exec, remoteDir+"/"+binExec, "0755")
 	if err != nil {
 		log.Errorw("Failed to scp file to remote machine", "exec", exec, "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	// SCP other files: jobflow yaml containing only
 	// the current job to remote machine
-	newFlow, err := f.generateLocalFlowRemoteMachine(job)
+	newFlow, err := f.generateLocalFlowRemoteMachine(j)
 	if err != nil {
 		log.Errorw("Failed to generate new local flow file for remote machine", "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	err = client.SCPBytes(newFlow, remoteDir+"/flow.yml", "0755")
 	if err != nil {
 		log.Errorw("Failed to scp new flow file to remote machine", "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	//time.Sleep(time.Second * 5)
@@ -233,24 +289,19 @@ func (f *Flow) execJobViaSSH(hostname string, job *Job) error {
 	remoteRes, err := client.ExecCommand(remoteCmd)
 	if err != nil {
 		log.Errorw("Failed to execute flow file on remote machine", "err", err)
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
 
 	// Unmarshalling remote result to store in current job locally
-	err = json.Unmarshal(remoteRes, &job.Result)
+	err = json.Unmarshal(remoteRes, &j.Result)
 	if err != nil {
 		log.Errorw("Failed to unmarshal remote job result", "res", string(remoteRes))
-		return err
+		j.Status = FAILED
+		ch <- j
+		return
 	}
-
-	//Remove tmp folder on remote machine
-	_, err = client.ExecCommand("rm -rf " + remoteDir)
-	if err != nil {
-		log.Errorw("Failed to remove folder on remote machine", "dir", remoteDir, "err", err)
-		return err
-	}
-
-	return nil
 }
 
 func (f *Flow) generateLocalFlowRemoteMachine(j *Job) ([]byte, error) {
@@ -296,4 +347,16 @@ func randomString(n int) string {
 		b[i] = letter[rand.Intn(len(letter))]
 	}
 	return string(b)
+}
+
+func copyJob(j *Job) *Job {
+	job := NewJob(j.Name)
+
+	job.Hosts = j.Hosts
+	job.Start = j.Start
+	job.Tasks = j.Tasks
+
+	job.Context = j.Context
+
+	return job
 }
