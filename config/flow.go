@@ -45,7 +45,15 @@ func ReadFlow(jf *job.Flow, content []byte) {
 		log.Fatalw("Cannot unmarshal flow file content", "err", err)
 	}
 
-	for k, v := range config {
+	// Tip to keep order while parsing config map
+	var keys []string
+	for k := range config {
+		keys = append(keys, k)
+	}
+
+	for _, k := range keys {
+		v := config[k]
+
 		if k == "on_remote" {
 			jf.IsOnRemote = cast.ToBool(v)
 		} else if k == "variables" {
