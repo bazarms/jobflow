@@ -45,28 +45,37 @@ func ReadFlow(jf *job.Flow, content []byte) {
 		log.Fatalw("Cannot unmarshal flow file content", "err", err)
 	}
 
-	// Tip to keep order while parsing config map
-	var keys []string
-	for k := range config {
-		keys = append(keys, k)
+	v, ok := config["on_remote"]
+	if ok {
+		jf.IsOnRemote = cast.ToBool(v)
 	}
 
-	for _, k := range keys {
-		v := config[k]
+	v, ok = config["variables"]
+	if ok {
+		jf.Variables = cast.ToStringMap(v)
+	}
 
-		if k == "on_remote" {
-			jf.IsOnRemote = cast.ToBool(v)
-		} else if k == "variables" {
-			jf.Variables = cast.ToStringMap(v)
-		} else {
-			j := job.NewJob(k)
+	v, ok = config["jobs"]
+	if ok {
+		for i, e := range cast.ToSlice(v) {
+			data := cast.ToStringMap(e)
+
+			// Get or assign a job name
+			name := cast.ToString(data["name"])
+			if name == "" {
+				name = "job-" + cast.ToString(i+1)
+			}
+
+			j := job.NewJob(name)
 
 			// Parse tasks
-			readJob(j, cast.ToStringMap(v))
+			readJob(j, cast.ToStringMap(e))
 
 			// Add job to job list
 			jf.Jobs = append(jf.Jobs, j)
 		}
+	} else {
+		log.Fatalw("No section 'jobs' found in the flow file", "file", jf.InventoryFile)
 	}
 }
 
