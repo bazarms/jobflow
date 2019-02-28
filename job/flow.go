@@ -250,7 +250,7 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 	// Defer function to clean up remote machine
 	// and send final job to channel
 	defer func() {
-		logger.Infow("Clean up remote machine", "job", j.Name, "hosts", j.Hosts)
+		logger.Infow("Clean up remote machine", "job", j.Name, "hosts", j.Hosts, "dir", remoteDir)
 		//Remove tmp folder on remote machine
 		_, err = client.ExecCommand("rm -rf " + remoteDir)
 		if err != nil {
@@ -299,7 +299,7 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 	remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 " + remoteDir + "/flow.yml"
 	remoteRes, err := client.ExecCommand(remoteCmd)
 	if err != nil {
-		logger.Errorw("Failed to execute flow file on remote machine", "err", err)
+		logger.Errorw("Failed to execute flow file on remote machine", "job", j.Name, "hosts", j.Hosts, "err", err)
 		j.Status = FAILED
 		ch <- j
 		return
@@ -319,6 +319,7 @@ func (f *Flow) generateLocalFlowRemoteMachine(j *Job) ([]byte, error) {
 	mFlow := make(map[string]interface{})
 	job := make(map[string]interface{})
 	tasks := []map[string]interface{}{}
+	jobs := []interface{}{}
 
 	mFlow["on_remote"] = "true"
 	mFlow["variables"] = f.Variables
@@ -345,7 +346,8 @@ func (f *Flow) generateLocalFlowRemoteMachine(j *Job) ([]byte, error) {
 	}
 
 	job["tasks"] = tasks
-	mFlow[j.Name] = job
+	jobs = append(jobs, job)
+	mFlow["jobs"] = jobs
 
 	return yaml.Marshal(mFlow)
 }

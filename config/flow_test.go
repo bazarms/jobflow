@@ -22,25 +22,25 @@ variables:
   var1: $VAR1
   var2: ${VAR2}
 
-build:
+jobs:
+- name: build
   tasks:
-    - shell:
-        cmd: exec
-        params:
-          cmd: echo 10
-    - shell:
-        cmd: exec
-        params:
-          cmd: echo 20
+  - shell:
+     cmd: exec
+     params:
+       cmd: echo 10
+  - shell:
+      cmd: exec
+      params:
+        cmd: echo 20
 
-release:
-  hosts: swmmng
+- hosts: swmmng
   tasks:
-    - name: "github release"
-      github:
-        cmd: release
-        params:
-          target: hello
+  - name: "github release"
+    github:
+      cmd: release
+      params:
+        target: hello
 `)
 
 	//cmdFuncShellExec, _ := job.GetCmdByName("shell.exec")
@@ -74,7 +74,7 @@ release:
 				},
 			},
 			{
-				Name:  "release",
+				Name:  "job-2",
 				Hosts: "swmmng",
 				Tasks: []*job.Task{
 					{
