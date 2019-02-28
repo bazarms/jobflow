@@ -18,7 +18,7 @@ TARGET = jobflow
 all: clean build
 
 # Build targets multiple platforms
-build: clean test-unit deps
+build: clean deps
 	gox -osarch="linux/amd64" -ldflags="-s -w" \
 	-output="bin/{{.OS}}_{{.Arch}}/"$(TARGET) .
 
