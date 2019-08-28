@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 	"github.com/stretchr/testify/assert"
 	//"github.com/uthng/jobflow/job"
 	//"github.com/uthng/jobflow/plugins/github"

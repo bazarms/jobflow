@@ -7,8 +7,8 @@ RM 		= rm
 CP 		= cp
 
 # Optimization build processes
-CPUS ?= $(shell nproc)
-MAKEFLAGS += --jobs=$(CPUS)
+#CPUS ?= $(shell nproc)
+#MAKEFLAGS += --jobs=$(CPUS)
 
 SRCS = $(shell git ls-files '*.go' | grep -v '^vendor/')
 
@@ -18,8 +18,8 @@ TARGET = jobflow
 all: clean build
 
 # Build targets multiple platforms
-build: clean deps
-	gox -osarch="linux/amd64" -ldflags="-s -w" \
+build: clean
+	gox -osarch="darwin/amd64 windows/amd64 linux/amd64" -ldflags="-s -w" \
 	-output="bin/{{.OS}}_{{.Arch}}/"$(TARGET) .
 
 optimize:
