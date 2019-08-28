@@ -12,12 +12,12 @@ import (
 	"math/rand"
 	"net/http"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/oauth2"
 
-	mygithub "github.com/uthng/jobflow/plugins/github"
 	log "github.com/uthng/golog"
+	mygithub "github.com/uthng/jobflow/plugins/github"
 )
 
 var repoTestName string
