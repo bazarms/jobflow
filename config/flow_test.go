@@ -12,7 +12,7 @@ import (
 
 	"github.com/uthng/jobflow/job"
 	// import all GoJobs's builtin modules
-	_ "github.com/uthng/jobflow/plugins/all"
+	//_ "github.com/uthng/jobflow/plugins/all"
 	//log "github.com/uthng/golog"
 )
 

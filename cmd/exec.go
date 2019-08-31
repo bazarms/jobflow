@@ -24,9 +24,8 @@ import (
 
 	"github.com/uthng/jobflow/config"
 	"github.com/uthng/jobflow/job"
-
 	// import all jobflow builtin modules
-	_ "github.com/uthng/jobflow/plugins/all"
+	//_ "github.com/uthng/jobflow/plugins/all"
 )
 
 var (

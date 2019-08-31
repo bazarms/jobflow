@@ -1,4 +1,4 @@
-package gox
+package main
 
 import "C"
 import (
