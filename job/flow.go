@@ -25,6 +25,7 @@ type Flow struct {
 	Jobs      []*Job
 	Inventory *Inventory
 
+	PluginDir     string
 	RemoteExecDir string
 	InventoryFile string
 
@@ -292,11 +293,20 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 		return
 	}
 
+	logger.Infow("Transfering local plugin folder", "job", j.Name, "hosts", j.Hosts)
+	err = client.SCPBytes(f.PluginDir, remoteDir+"/plugins", "0755")
+	if err != nil {
+		logger.Errorw("Failed to scp plugin folder to remote machine", "err", err)
+		j.Status = FAILED
+		ch <- j
+		return
+	}
+
 	//time.Sleep(time.Second * 5)
 
 	logger.Infow("Executing remote jobflow", "job", j.Name, "hosts", j.Hosts)
 	// Execute jobflow on remote machine with new location
-	remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 " + remoteDir + "/flow.yml"
+	remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 --plugin-dir " + f.PluginDir + " " + remoteDir + "/flow.yml"
 	remoteRes, err := client.ExecCommand(remoteCmd)
 	if err != nil {
 		logger.Errorw("Failed to execute flow file on remote machine", "job", j.Name, "hosts", j.Hosts, "err", err)

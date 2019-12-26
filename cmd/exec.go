@@ -31,6 +31,7 @@ import (
 var (
 	jobexec   string
 	inventory string
+	pluginDir string
 	verbosity int
 )
 
@@ -53,6 +54,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
+	execCmd.PersistentFlags().StringVar(&pluginDir, "plugin-dir", "plugins", "Plugin folder")
 	execCmd.PersistentFlags().StringVar(&jobexec, "job", "all", "Job's name. Default: all")
 	execCmd.PersistentFlags().StringVar(&inventory, "inventory", "", "Inventory file")
 	execCmd.PersistentFlags().IntVar(&verbosity, "verbosity", log.INFO, "Log level. Default: INFO")
@@ -68,7 +70,15 @@ func exec(args []string) *job.Flow {
 		log.Fatalln("No jobflow file is specified")
 	}
 
+	// Load modules if exists
+	err := job.LoadModules(pluginDir)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	jf := config.ReadFlowFile(args[0])
+
+	jf.PluginDir = pluginDir
 
 	if inventory != "" {
 		jf.Inventory = config.ReadInventoryFile(inventory)
