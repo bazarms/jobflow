@@ -17,7 +17,7 @@ import (
 	"golang.org/x/oauth2"
 
 	log "github.com/uthng/golog"
-	mygithub "github.com/uthng/jobflow/plugins/github"
+	mygithub "github.com/bazarms/jobflow/plugins/github"
 )
 
 var repoTestName string

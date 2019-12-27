@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/uthng/jobflow/job"
-	"github.com/uthng/jobflow/plugins/gox"
+	"github.com/bazarms/jobflow/job"
+	"github.com/bazarms/jobflow/plugins/gox"
 )
 
 func TestCmdBuild(t *testing.T) {

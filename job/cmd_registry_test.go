@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	log "github.com/uthng/golog"
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 )
 
 var module = job.Module{

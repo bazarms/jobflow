@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/go-github/v28/github"
 	"github.com/stretchr/testify/assert"
-	//"github.com/uthng/jobflow/job"
-	//"github.com/uthng/jobflow/plugins/github"
+	//"github.com/bazarms/jobflow/job"
+	//"github.com/bazarms/jobflow/plugins/github"
 	//log "github.com/uthng/golog"
 )
 

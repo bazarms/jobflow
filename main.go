@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/uthng/jobflow/cmd"
+import "github.com/bazarms/jobflow/cmd"
 
 func main() {
 	cmd.Execute()

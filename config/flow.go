@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	log "github.com/uthng/golog"
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 )
 
 // ReadFlowFile reads the flow content from a file and

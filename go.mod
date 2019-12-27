@@ -1,4 +1,4 @@
-module github.com/uthng/jobflow
+module github.com/bazarms/jobflow
 
 go 1.12
 

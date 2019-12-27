@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
-	//"github.com/uthng/jobflow/job"
+	//"github.com/bazarms/jobflow/job"
 	//log "github.com/uthng/golog"
 )
 

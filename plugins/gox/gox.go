@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cast"
 	log "github.com/uthng/golog"
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 )
 
 var plugin = job.Plugin{

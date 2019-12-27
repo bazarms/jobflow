@@ -12,7 +12,7 @@ import (
 	log "github.com/uthng/golog"
 	utils "github.com/uthng/goutils"
 
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 )
 
 // ReadInventoryFile reads the flow content from a file and

@@ -294,7 +294,7 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 	}
 
 	logger.Infow("Transfering local plugin folder", "job", j.Name, "hosts", j.Hosts)
-	err = client.SCPBytes(f.PluginDir, remoteDir+"/plugins", "0755")
+	err = client.SCPBytes([]byte(f.PluginDir), remoteDir+"/plugins", "0755")
 	if err != nil {
 		logger.Errorw("Failed to scp plugin folder to remote machine", "err", err)
 		j.Status = FAILED

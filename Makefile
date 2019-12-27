@@ -11,7 +11,7 @@ CP 		= cp
 #MAKEFLAGS += --jobs=$(CPUS)
 
 # Project variables
-PROJECT_PKG ?= github.com/uthng/jobflow
+PROJECT_PKG ?= github.com/bazarms/jobflow
 PROJECT_PATH ?= $(GOPATH)/src/go/$(PROJECT_PKG)
 PROJECT_BIN_DIR ?= bin
 PROJECT_PLUGIN_DIR ?= plugins

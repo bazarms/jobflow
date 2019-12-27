@@ -10,9 +10,9 @@ import (
 	//"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 	// import all GoJobs's builtin modules
-	//_ "github.com/uthng/jobflow/plugins/all"
+	//_ "github.com/bazarms/jobflow/plugins/all"
 	//log "github.com/uthng/golog"
 )
 

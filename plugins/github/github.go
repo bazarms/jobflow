@@ -15,7 +15,7 @@ import (
 	"golang.org/x/oauth2"
 
 	log "github.com/uthng/golog"
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 )
 
 type repositoriesService interface {

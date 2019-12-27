@@ -22,10 +22,10 @@ import (
 
 	log "github.com/uthng/golog"
 
-	"github.com/uthng/jobflow/config"
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/config"
+	"github.com/bazarms/jobflow/job"
 	// import all jobflow builtin modules
-	//_ "github.com/uthng/jobflow/plugins/all"
+	//_ "github.com/bazarms/jobflow/plugins/all"
 )
 
 var (

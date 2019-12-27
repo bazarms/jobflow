@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	//"strings"
 
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 )
 
 var plugin = job.Plugin{

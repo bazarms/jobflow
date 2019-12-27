@@ -9,7 +9,7 @@ import (
 
 	//"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
-	"github.com/uthng/jobflow/job"
+	"github.com/bazarms/jobflow/job"
 	//log "github.com/uthng/golog"
 )
 
