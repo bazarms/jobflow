@@ -37,9 +37,10 @@ var (
 
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
-	Use:   "exec",
+	Use:   "exec <flowfile.yml>",
 	Short: "Exec command is to execute jobs",
 	Long:  `Exec command is to execute a specific job. If no job specified, all jobs will get executed in the order.`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetVerbosity(verbosity)
 
