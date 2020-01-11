@@ -1,4 +1,6 @@
-package main_test
+// +build unit
+
+package main
 
 import (
 	"fmt"
@@ -7,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/bazarms/jobflow/job"
-	"github.com/bazarms/jobflow/plugins/gox"
+	//"github.com/bazarms/jobflow/plugins/gox"
 )
 
 func TestCmdBuild(t *testing.T) {
@@ -40,7 +42,7 @@ func TestCmdBuild(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := gox.CmdBuild(tc.params)
+			result := CmdBuild(tc.params)
 			assert.Equal(t, result, tc.result)
 		})
 	}

@@ -1,14 +1,16 @@
+// +build unit
+
 package job_test
 
 import (
 	//"fmt"
 	"testing"
 
-	log "github.com/uthng/golog"
 	"github.com/bazarms/jobflow/job"
+	log "github.com/uthng/golog"
 )
 
-var module = job.Module{
+var module = job.Plugin{
 	Name:        "ModTest",
 	Version:     "0.1",
 	Description: "ModTest",
@@ -23,17 +25,17 @@ var cmds = []job.Cmd{
 	{
 		Name:   "cmd1",
 		Func:   fn,
-		Module: module,
+		Plugin: module,
 	},
 	{
 		Name:   "cmd2",
 		Func:   fn,
-		Module: module,
+		Plugin: module,
 	},
 	{
 		Name:   "cmd3",
 		Func:   fn,
-		Module: module,
+		Plugin: module,
 	},
 }
 

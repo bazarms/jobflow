@@ -2,33 +2,34 @@ variables:
   var1: $VAR1
   var2: ${VAR2}
 
-job1:
-  tasks:
-    - name: shell11
-      shell:
-        cmd: exec
-        params:
-          cmd: "echo {{ .context.variables.var1 }}"
-    - name: shell12
-      shell:
-        cmd: exec
-        params:
-          cmd: "echo {{ .context.variables.var2 }}"
-    - name: shell13
-      shell:
-        cmd: exec
-        params:
-          cmd: "echo {{ .context.variables.var1 }}+{{ .context.variables.var2 }}"
+jobs:
+  - name: "job1"
+    tasks:
+      - name: shell11
+        shell:
+          cmd: exec
+          params:
+            cmd: "echo {{ .context.variables.var1 }}"
+      - name: shell12
+        shell:
+          cmd: exec
+          params:
+            cmd: "echo {{ .context.variables.var2 }}"
+      - name: shell13
+        shell:
+          cmd: exec
+          params:
+            cmd: "echo {{ .context.variables.var1 }}+{{ .context.variables.var2 }}"
 
-job2:
-  tasks:
-    - name: shell21
-      shell:
-        cmd: exec
-        params:
-          cmd: "echo {{ .context.variables.var1 }}/{{ .context.variables.var2 }}"
-    - name: shell22
-      shell:
-        cmd: exec
-        params:
-          cmd: "echo {{ .context.variables.var1 }}*{{ .context.variables.var2 }}"
+  - name: "job2"
+    tasks:
+      - name: shell21
+        shell:
+          cmd: exec
+          params:
+            cmd: "echo {{ .context.variables.var1 }}/{{ .context.variables.var2 }}"
+      - name: shell22
+        shell:
+          cmd: exec
+          params:
+            cmd: "echo {{ .context.variables.var1 }}*{{ .context.variables.var2 }}"

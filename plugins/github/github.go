@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cast"
 	"golang.org/x/oauth2"
 
-	log "github.com/uthng/golog"
 	"github.com/bazarms/jobflow/job"
+	log "github.com/uthng/golog"
 )
 
 type repositoriesService interface {
@@ -547,7 +547,7 @@ func (c *client) deleteAssets(releaseID int64) error {
 	// Loop to remove all assets
 	for _, asset := range assets {
 		if c.dryRun {
-			log.Infoln("Deleting release asset: ", asset.GetID, ", ", asset.GetName())
+			log.Infoln("Deleting release asset: ", asset.GetID(), ", ", asset.GetName())
 		} else {
 			_, err = c.repositories.DeleteReleaseAsset(c.ctx, c.user, c.repository, *asset.ID)
 			if err != nil {

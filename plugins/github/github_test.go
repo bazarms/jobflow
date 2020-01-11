@@ -1,4 +1,6 @@
-package main_test
+// +build unit
+
+package main
 
 import (
 	"context"

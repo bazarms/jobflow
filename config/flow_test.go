@@ -1,3 +1,5 @@
+// +build unit
+
 // vim: ts=4 et sts=4 sw=4
 package config
 
@@ -5,6 +7,7 @@ import (
 	//"bytes"
 	//"fmt"
 	//"reflect"
+	"runtime"
 	"testing"
 
 	//"github.com/spf13/cast"
@@ -87,6 +90,13 @@ jobs:
 				},
 			},
 		},
+	}
+
+	pluginDir := "../bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugins"
+	// Load modules if exists
+	err := job.LoadModules(pluginDir)
+	if !assert.Nil(t, err) {
+		return
 	}
 
 	jf := job.NewFlow()

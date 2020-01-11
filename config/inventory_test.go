@@ -1,3 +1,5 @@
+// +build unit
+
 // vim: ts=4 et sts=4 sw=4
 package config
 
@@ -8,8 +10,8 @@ import (
 	"testing"
 
 	//"github.com/spf13/cast"
-	"github.com/stretchr/testify/assert"
 	"github.com/bazarms/jobflow/job"
+	"github.com/stretchr/testify/assert"
 	//log "github.com/uthng/golog"
 )
 

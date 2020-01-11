@@ -46,10 +46,10 @@ optimize:
 	done
 
 test-unit:
-	go test -count 1 -v ./...
+	go test -count 1 -v -tags=unit ./...
 
 test-integration:
-	go test -count 1 -v -tags=integration ./test/integration
+	go test -count 1 -v -tags=integration ./test/integration -args data/jobflow/flow.yml -inventory data/jobflow/inventory.yml
 
 fmt:
 	gofmt -s -l -w $(PROJECT_BUILD_SRCS)

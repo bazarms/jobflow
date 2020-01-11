@@ -1,7 +1,9 @@
+// +build unit
+
 package job
 
 import (
-	"errors"
+	//"errors"
 	//"fmt"
 	"os"
 	//"reflect"
@@ -17,30 +19,46 @@ func TestCheckTasksSuccess(t *testing.T) {
 
 	task1 := Task{
 		Name: "Task 1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Exit Error",
 		OnSuccess: "Task 2",
 	}
 	task2 := Task{
 		Name: "Task 2",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Exit Error",
 		OnSuccess: "Task 3",
 	}
 	task3 := Task{
 		Name: "Task 3",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 	}
 
 	taskErr := Task{
 		Name: "Exit Error",
-		Func: nil,
+		Cmd: Cmd{
+			Name:   "cmd",
+			Func:   nil,
+			Plugin: Plugin{},
+		},
 	}
 
 	w := NewJob("Job 1")
@@ -51,7 +69,7 @@ func TestCheckTasksSuccess(t *testing.T) {
 	w.AddTask(&taskErr)
 
 	res := w.CheckTasks()
-	if res != true {
+	if res != nil {
 		t.Fail()
 	}
 }
@@ -60,30 +78,46 @@ func TestCheckTasksOnFailure(t *testing.T) {
 
 	task1 := Task{
 		Name: "Task 1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Exit Error",
 		OnSuccess: "Task 2",
 	}
 	task2 := Task{
 		Name: "Task 2",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Hmmmmmmm",
 		OnSuccess: "Task 3",
 	}
 	task3 := Task{
 		Name: "Task 3",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 	}
 
 	taskErr := Task{
 		Name: "Exit Error",
-		Func: nil,
+		Cmd: Cmd{
+			Name:   "cmd",
+			Func:   nil,
+			Plugin: Plugin{},
+		},
 	}
 
 	w := NewJob("Job 2")
@@ -94,7 +128,7 @@ func TestCheckTasksOnFailure(t *testing.T) {
 	w.AddTask(&taskErr)
 
 	res := w.CheckTasks()
-	if res == true {
+	if res == nil {
 		t.Fail()
 	}
 }
@@ -103,30 +137,46 @@ func TestCheckTasksOnSuccess(t *testing.T) {
 
 	task1 := Task{
 		Name: "Task 1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Exit Error",
 		OnSuccess: "Task 2",
 	}
 	task2 := Task{
 		Name: "Task 2",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Exit Error",
-		OnSuccess: "Task 4",
+		OnSuccess: "Task 3",
 	}
 	task3 := Task{
 		Name: "Task 3",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 	}
 
 	taskErr := Task{
 		Name: "Exit Error",
-		Func: nil,
+		Cmd: Cmd{
+			Name:   "cmd",
+			Func:   nil,
+			Plugin: Plugin{},
+		},
 	}
 
 	w := NewJob("Job 3")
@@ -137,21 +187,20 @@ func TestCheckTasksOnSuccess(t *testing.T) {
 	w.AddTask(&taskErr)
 
 	res := w.CheckTasks()
-	if res == true {
+	if res != nil {
 		t.Fail()
 	}
 }
 
 func TestOneTaskJob(t *testing.T) {
-	var testVar bool
-
-	testVar = false
-
 	task := Task{
 		Name: "Task 1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			testVar = true
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 	}
 
@@ -163,53 +212,65 @@ func TestOneTaskJob(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	if testVar != true {
-		t.Fail()
-	}
 }
 
 func TestMultipleTasks(t *testing.T) {
-	//var testVar bool
-
-	//testVar = false
-
 	task1 := Task{
 		Name: "Task1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Error",
 		OnSuccess: "Task2",
 	}
 	task3 := Task{
 		Name: "Task3",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: errors.New("Task3: NOK"), Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Rollback1",
 		OnSuccess: "Task4",
 	}
 	task2 := Task{
 		Name: "Task2",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnSuccess: "Task3",
 		OnFailure: "Error",
 	}
 	task4 := Task{
 		Name: "Task4",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Error",
 	}
 
 	rollback1 := Task{
 		Name: "Rollback1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Error",
 		OnSuccess: "Rollback2",
@@ -217,16 +278,24 @@ func TestMultipleTasks(t *testing.T) {
 
 	rollback2 := Task{
 		Name: "Rollback2",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 		OnFailure: "Error",
 	}
 
 	err := Task{
 		Name: "Error",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: nil}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: nil}
+			},
+			Plugin: Plugin{},
 		},
 	}
 
@@ -333,8 +402,12 @@ var4:
 
 	task1 := Task{
 		Name: "Task 1",
-		Func: func(m map[string]interface{}) *CmdResult {
-			return &CmdResult{Error: nil, Result: m}
+		Cmd: Cmd{
+			Name: "cmd",
+			Func: func(m map[string]interface{}) *CmdResult {
+				return &CmdResult{Error: nil, Result: m}
+			},
+			Plugin: Plugin{},
 		},
 		Params: map[string]interface{}{
 			"param1": "$VAR1 {{ .context.variables.var1 }}",
@@ -353,5 +426,5 @@ var4:
 	// Check result of task1
 	result, ok := w.Result["Task 1"]
 	assert.Equal(t, true, ok)
-	assert.Equal(t, result, output)
+	assert.Equal(t, result.Result, output)
 }

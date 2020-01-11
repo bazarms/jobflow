@@ -1,3 +1,5 @@
+// +build unit
+
 package cmd
 
 import (
@@ -5,8 +7,11 @@ import (
 	"os"
 	"testing"
 	//    "reflect"
+	"runtime"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/bazarms/jobflow/job"
 	//log "github.com/uthng/golog"
 )
 
@@ -14,35 +19,51 @@ func TestExec(t *testing.T) {
 	testCases := []struct {
 		name     string
 		yamlFile string
-		output   []map[string]interface{}
+		output   map[string]map[string]*job.CmdResult
 	}{
 		{
 			"ShellExec",
 			"./data/exec.yml",
-			[]map[string]interface{}{
-				map[string]interface{}{
-					"shell11": map[string]interface{}{
-						"result": "var1\n",
+			map[string]map[string]*job.CmdResult{
+				"job1": map[string]*job.CmdResult{
+					"shell11": &job.CmdResult{
+						//Error: nil,
+						Result: map[string]interface{}{
+							"result": "var1\n",
+						},
 					},
-					"shell12": map[string]interface{}{
-						"result": "var2\n",
+					"shell12": &job.CmdResult{
+						Error: nil,
+						Result: map[string]interface{}{
+							"result": "var2\n",
+						},
 					},
-					"shell13": map[string]interface{}{
-						"result": "var1+var2\n",
+					"shell13": &job.CmdResult{
+						Error: nil,
+						Result: map[string]interface{}{
+							"result": "var1+var2\n",
+						},
 					},
 				},
-				map[string]interface{}{
-					"shell21": map[string]interface{}{
-						"result": "var1/var2\n",
+				"job2": map[string]*job.CmdResult{
+					"shell21": &job.CmdResult{
+						Error: nil,
+						Result: map[string]interface{}{
+							"result": "var1/var2\n",
+						},
 					},
-					"shell22": map[string]interface{}{
-						"result": "var1*var2\n",
+					"shell22": &job.CmdResult{
+						Error: nil,
+						Result: map[string]interface{}{
+							"result": "var1*var2\n",
+						},
 					},
 				},
 			},
 		},
 	}
 
+	pluginDir = "../bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugins"
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var args []string
@@ -54,8 +75,9 @@ func TestExec(t *testing.T) {
 			args = append(args, tc.yamlFile)
 
 			jf := exec(args)
-			for i, j := range jf.Jobs {
-				assert.Equal(t, tc.output[i], j.Result)
+			//assert.Equal(t, tc.output, jf.Result)
+			for _, j := range jf.Result["localhost"] {
+				assert.Equal(t, tc.output[j.Name], j.Result)
 			}
 		})
 	}
