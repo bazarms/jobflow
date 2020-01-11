@@ -62,6 +62,8 @@ func (f *Flow) RunAllJobs() {
 
 // RunJob executes a specified job with the name given
 func (f *Flow) RunJob(job string) error {
+	found := false
+
 	if job == "" {
 		err := fmt.Errorf("No job name is specified")
 		f.Status = FAILED
@@ -72,6 +74,7 @@ func (f *Flow) RunJob(job string) error {
 	// Loop jobs and exec job by job.
 	for _, j := range f.Jobs {
 		if j.Name == job {
+			found = true
 			err := f.execJob(j)
 			if err != nil {
 				f.Status = FAILED
@@ -81,6 +84,12 @@ func (f *Flow) RunJob(job string) error {
 		}
 	}
 
+	if !found {
+		err := fmt.Errorf("No job found!")
+		log.Errorw(err.Error(), "name", job)
+		f.Status = FAILED
+		return err
+	}
 	return nil
 }
 
@@ -155,15 +164,6 @@ func (f *Flow) execJobRemote(j *Job) error {
 		f.Result[j.Hosts] = append(f.Result[j.Hosts], j)
 	}
 
-	for k, v := range f.Result {
-		fmt.Println(k, ":")
-		for _, j := range v {
-			fmt.Printf("\t%s:\n", j.Name)
-			for k, v := range j.Result {
-				fmt.Printf("\t\t%s: %+v\n", k, v)
-			}
-		}
-	}
 	return nil
 }
 
@@ -294,7 +294,7 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 	}
 
 	logger.Infow("Transfering local plugin folder", "job", j.Name, "hosts", j.Hosts)
-	err = client.SCPBytes([]byte(f.PluginDir), remoteDir+"/plugins", "0755")
+	err = client.SCPDir(f.PluginDir, remoteDir, "0755")
 	if err != nil {
 		logger.Errorw("Failed to scp plugin folder to remote machine", "err", err)
 		j.Status = FAILED
@@ -306,7 +306,9 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 
 	logger.Infow("Executing remote jobflow", "job", j.Name, "hosts", j.Hosts)
 	// Execute jobflow on remote machine with new location
-	remoteCmd := remoteDir + "/" + binExec + " exec --verbosity 0 --plugin-dir " + f.PluginDir + " " + remoteDir + "/flow.yml"
+	// For integration tests which use flag to parse arguments, we need
+	// to put all options before positional arguments
+	remoteCmd := remoteDir + "/" + binExec + " --verbosity 0 --plugin-dir " + remoteDir + "/plugins" + " exec " + remoteDir + "/flow.yml"
 	remoteRes, err := client.ExecCommand(remoteCmd)
 	if err != nil {
 		logger.Errorw("Failed to execute flow file on remote machine", "job", j.Name, "hosts", j.Hosts, "err", err)
@@ -318,7 +320,7 @@ func (f *Flow) execJobViaSSH(j *Job, ch chan *Job) {
 	// Unmarshalling remote result to store in current job locally
 	err = json.Unmarshal(remoteRes, &j.Result)
 	if err != nil {
-		logger.Errorw("Failed to unmarshal remote job result", "res", string(remoteRes))
+		logger.Errorw("Failed to unmarshal remote job result", "res", string(remoteRes), "err", err)
 		j.Status = FAILED
 		ch <- j
 		return
@@ -331,7 +333,7 @@ func (f *Flow) generateLocalFlowRemoteMachine(j *Job) ([]byte, error) {
 	tasks := []map[string]interface{}{}
 	jobs := []interface{}{}
 
-	mFlow["on_remote"] = "true"
+	mFlow["on_remote"] = true
 	mFlow["variables"] = f.Variables
 
 	// Tasks
@@ -355,6 +357,7 @@ func (f *Flow) generateLocalFlowRemoteMachine(j *Job) ([]byte, error) {
 		tasks = append(tasks, task)
 	}
 
+	job["name"] = j.Name
 	job["tasks"] = tasks
 	jobs = append(jobs, job)
 	mFlow["jobs"] = jobs
