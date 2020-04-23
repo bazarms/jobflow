@@ -266,7 +266,7 @@ func CmdRelease(params map[string]interface{}) *job.CmdResult {
 		return result
 	}
 
-	result.Result["result"] = release
+	result.Result["release"] = release
 
 	return result
 }

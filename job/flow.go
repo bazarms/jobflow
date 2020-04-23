@@ -72,15 +72,14 @@ func (f *Flow) RunJob(job string) error {
 	}
 
 	// Loop jobs and exec job by job.
-	for _, j := range f.Jobs {
-		if j.Name == job {
-			found = true
-			err := f.execJob(j)
-			if err != nil {
-				f.Status = FAILED
-				log.Errorw(err.Error())
-				return err
-			}
+	j := f.getJobByName(job)
+	if j != nil {
+		found = true
+		err := f.execJob(j)
+		if err != nil {
+			f.Status = FAILED
+			log.Errorw(err.Error())
+			return err
 		}
 	}
 
@@ -93,7 +92,54 @@ func (f *Flow) RunJob(job string) error {
 	return nil
 }
 
+// GetJobResult returns job result for a given job name
+func (f *Flow) GetJobResult(job string) map[string]*CmdResult {
+	host := "localhost"
+	j := f.getJobByName(job)
+
+	if j != nil {
+		if j.Hosts != "" && j.Hosts != "localhost" && j.Hosts != "127.0.0.1" {
+			host = j.Hosts
+		}
+
+		for k, v := range f.Result {
+			if k == host {
+				for _, j := range v {
+					if j.Name == job {
+						return j.Result
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetTaskResult returns task result for job and task name
+func (f *Flow) GetTaskResult(job, task string) map[string]interface{} {
+	jobResult := f.GetJobResult(job)
+	if jobResult != nil {
+		for k, v := range jobResult {
+			if k == task {
+				return v.Result
+			}
+		}
+	}
+
+	return nil
+}
+
 /////////// INTERNAL FUNCTIONS /////////////////////////:
+func (f *Flow) getJobByName(name string) *Job {
+	for _, j := range f.Jobs {
+		if j.Name == name {
+			return j
+		}
+	}
+
+	return nil
+}
 
 func (f *Flow) execJob(job *Job) error {
 	if job.Hosts == "" || job.Hosts == "localhost" || job.Hosts == "127.0.0.1" {
