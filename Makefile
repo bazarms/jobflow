@@ -10,6 +10,13 @@ CP 		= cp
 #CPUS ?= $(shell nproc)
 #MAKEFLAGS += --jobs=$(CPUS)
 
+OS = $(shell uname -s | tr 'A-Z' 'a-z')
+ARCH = amd64
+
+ifeq ($(shell uname -m), x86_64)
+		ARCH = amd64
+endif
+
 # Project variables
 PROJECT_PKG ?= github.com/bazarms/jobflow
 PROJECT_PATH ?= $(GOPATH)/src/go/$(PROJECT_PKG)
@@ -49,7 +56,7 @@ test-unit:
 	go test -count 1 -v -tags=unit ./...
 
 test-integration:
-	go test -count 1 -v -tags=integration ./test/integration -args data/jobflow/flow.yml -inventory data/jobflow/inventory.yml
+	go test -count 1 -v -tags=integration ./test/integration/jobflow -inventory data/inventory.yml -plugin-dir ../../../bin/$(OS)_$(ARCH)/plugins -verbosity 0 -args exec data/flow.yml
 
 fmt:
 	gofmt -s -l -w $(PROJECT_BUILD_SRCS)
