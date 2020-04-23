@@ -1,0 +1,54 @@
+variables:
+  repoUser: ${GITHUB_USER}
+  repoToken: ${GITHUB_AUTH_TOKEN}
+  repoTestName: jobflow-test
+
+jobs:
+  - name: FirstRelease
+    tasks:
+      - github:
+          cmd: release
+          params:
+            token: {{ .context.variables.repoToken }}
+            user: {{ .context.variables.repoUser }}
+            repository: {{ .context.variables.repoTestName }}
+            version: 0.1.0
+            commitish: master
+            name: 0.1.0,
+            changelog: true
+            changelog_type: 0
+            assets:
+              - "./data/assets/asset1.tar.gz"
+              - "./data/assets/asset2.tar.gz"
+  - name: ReplaceRelease
+    tasks:
+      - github:
+          cmd: release
+          params:
+            token: {{ .context.variables.repoToken }}
+            user: {{ .context.variables.repoUser }}
+            repository: {{ .context.variables.repoTestName }}
+            version: 0.1.0
+            commitish: master
+            name: 0.1.0,
+            changelog: true
+            changelog_type: 0
+            assets:
+              - "./data/assets/asset3.tar.gz"
+              - "./data/assets/asset4.tar.gz"
+  - name: SecondRelease
+    tasks:
+      - github:
+          cmd: release
+          params:
+            token: {{ .context.variables.repoToken }}
+            user: {{ .context.variables.repoUser }}
+            repository: {{ .context.variables.repoTestName }}
+            version: 0.2.0
+            commitish: master
+            name: 0.2.0,
+            changelog: true
+            changelog_type: 0
+            assets:
+              - "./data/assets/asset1.tar.gz"
+              - "./data/assets/asset2.tar.gz"
